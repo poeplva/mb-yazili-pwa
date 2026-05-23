@@ -1,39 +1,3467 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="theme-color" content="#03a9f4" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="google" content="notranslate" />
-        <link rel="manifest" href="/manifest.json" />
-        <link rel="stylesheet" href="/css/native-like-experience.css" />
-        <script async src="https://unpkg.com/pwacompat" crossOrigin="anonymous"></script>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MB Yazılı App</title>
 
-        <!-- Apple touch icon -->
-        <link rel="apple-touch-icon" sizes="120x120" href="/icons/apple-touch-icon_120.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon_180.png" />
-    </head>
-    <body style="margin: 0">
-        <header style="display: flex; align-items: center; padding: 16px; background-color: #03a9f4; box-shadow: 0px 4px 5px rgba(0, 0, 0, 0.14),0px 1px 10px rgba(0, 0, 0, 0.12), 0px 2px 4px rgba(0, 0, 0, 0.2);">
-            <svg style="margin-right: 12px" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path
-                    d="M3 8V6H21V8H3ZM3 13H21V11H3V13ZM3 18H21V16H3V18Z"
-                    fill="black"
+  <meta name="theme-color" content="#f1f5f9" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="google" content="notranslate" />
+  <link rel="manifest" href="/manifest.json" />
+
+  <link rel="apple-touch-icon" sizes="120x120" href="/icons/apple-touch-icon_120.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon_180.png" />
+
+  <script async src="https://unpkg.com/pwacompat" crossOrigin="anonymous"></script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+
+  <style>
+    @media print {
+      .no-print, .print\:hidden { display: none !important; }
+    }
+    body { margin: 0; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" data-presets="react">
+    // React hook'larını global'e al (import yerine)
+    const { useState, useRef, useEffect, useCallback, useMemo } = React;
+
+    // ===== Lucide ikonları (inline SVG bileşenleri) =====
+    const _icon = (paths) => (props) => {
+      const { className = '', ...rest } = props || {};
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          className={className} {...rest}>
+          {paths}
+        </svg>
+      );
+    };
+    const Plus = _icon(<><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>);
+    const Trash2 = _icon(<><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></>);
+    const ImageIcon = _icon(<><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></>);
+    const FileText = _icon(<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></>);
+    const Type = _icon(<><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></>);
+    const Hash = _icon(<><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></>);
+    const Settings = _icon(<><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></>);
+    const Printer = _icon(<><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></>);
+    const Download = _icon(<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></>);
+    const Move = _icon(<><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></>);
+    const Columns = _icon(<><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7m0-18H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7m0-18v18"/></>);
+    const ArrowUpDown = _icon(<><polyline points="21 16 17 20 13 16"/><line x1="17" y1="20" x2="17" y2="4"/><polyline points="3 8 7 4 11 8"/><line x1="7" y1="4" x2="7" y2="20"/></>);
+    const Sigma = _icon(<><path d="M18 7V5a1 1 0 0 0-1-1H6.5a.5.5 0 0 0-.4.8l4.5 6-4.5 6a.5.5 0 0 0 .4.8H17a1 1 0 0 0 1-1v-2"/></>);
+    const Minus = _icon(<><line x1="5" y1="12" x2="19" y2="12"/></>);
+    const GripVertical = _icon(<><circle cx="9" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="18" r="1"/></>);
+    const ChevronUp = _icon(<><polyline points="18 15 12 9 6 15"/></>);
+    const ChevronDown = _icon(<><polyline points="6 9 12 15 18 9"/></>);
+    const Save = _icon(<><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></>);
+    const Upload = _icon(<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></>);
+    const FolderOpen = _icon(<><path d="M6 14l1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6A2 2 0 0 1 18.45 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/></>);
+
+    // ===== Uygulama kodu =====
+
+// ============== YARDIMCI BILEŞENLER ==============
+
+// Font, kalınlık, boyut seçici
+const TextStyleControls = ({ style, onChange, compact = false }) => {
+  const fonts = [
+    'Arial', 'Times New Roman', 'Calibri', 'Verdana', 'Georgia',
+    'Tahoma', 'Courier New', 'Comic Sans MS', 'Trebuchet MS'
+  ];
+  return (
+    <div className={`flex items-center gap-1 ${compact ? 'text-xs' : 'text-sm'} flex-wrap`}>
+      <select
+        value={style.fontFamily}
+        onChange={(e) => onChange({ ...style, fontFamily: e.target.value })}
+        className="border border-slate-300 rounded px-1 py-0.5 bg-white"
+      >
+        {fonts.map(f => <option key={f} value={f} style={{ fontFamily: f }}>{f}</option>)}
+      </select>
+      <select
+        value={style.fontSize}
+        onChange={(e) => onChange({ ...style, fontSize: parseInt(e.target.value) })}
+        className="border border-slate-300 rounded px-1 py-0.5 bg-white w-14"
+      >
+        {[8,9,10,11,12,13,14,15,16,18,20,22,24,28,32,36,40,48].map(s => (
+          <option key={s} value={s}>{s}</option>
+        ))}
+      </select>
+      <button
+        onClick={() => onChange({ ...style, fontWeight: style.fontWeight === 'bold' ? 'normal' : 'bold' })}
+        className={`px-2 py-0.5 border rounded font-bold ${style.fontWeight === 'bold' ? 'bg-slate-700 text-white' : 'bg-white text-slate-700 border-slate-300'}`}
+      >K</button>
+      <button
+        onClick={() => onChange({ ...style, fontStyle: style.fontStyle === 'italic' ? 'normal' : 'italic' })}
+        className={`px-2 py-0.5 border rounded italic ${style.fontStyle === 'italic' ? 'bg-slate-700 text-white' : 'bg-white text-slate-700 border-slate-300'}`}
+      >İ</button>
+      <button
+        onClick={() => onChange({ ...style, textDecoration: style.textDecoration === 'underline' ? 'none' : 'underline' })}
+        className={`px-2 py-0.5 border rounded underline ${style.textDecoration === 'underline' ? 'bg-slate-700 text-white' : 'bg-white text-slate-700 border-slate-300'}`}
+      >A</button>
+    </div>
+  );
+};
+
+const defaultStyle = (size = 12) => ({
+  fontFamily: 'Times New Roman',
+  fontSize: size,
+  fontWeight: 'normal',
+  fontStyle: 'normal',
+  textDecoration: 'none'
+});
+
+const styleToCSS = (s) => ({
+  fontFamily: s.fontFamily,
+  fontSize: `${s.fontSize}pt`,
+  fontWeight: s.fontWeight,
+  fontStyle: s.fontStyle,
+  textDecoration: s.textDecoration
+});
+
+// Benzersiz ID üretici (Date.now() çakışmasını önler)
+let _idCounter = 0;
+const uniqueId = () => Date.now() * 1000 + (++_idCounter);
+
+// Şık (option) normalize: eski format string, yeni format { text, shapes }
+const normOption = (opt) => {
+  if (typeof opt === 'string') return { text: opt, shapes: [] };
+  return { text: opt?.text ?? '', shapes: opt?.shapes ?? [] };
+};
+
+// ============== LATEX EDITÖR ==============
+
+// LaTeX kategorize sembol paleti — component dışında, her render'da yeniden oluşmasın diye
+const LATEX_CATEGORIES = {
+  temel: {
+    label: 'Temel',
+    items: [
+      { label: 'x²', value: '^{2}', cursorOffset: -1 },
+      { label: 'x³', value: '^{3}', cursorOffset: -1 },
+      { label: 'xⁿ', value: '^{n}', cursorOffset: -1 },
+      { label: 'xₙ', value: '_{n}', cursorOffset: -1 },
+      { label: 'a/b', value: '\\frac{a}{b}', cursorOffset: 0 },
+      { label: '√', value: '\\sqrt{}', cursorOffset: -1 },
+      { label: 'ⁿ√', value: '\\sqrt[n]{}', cursorOffset: -1 },
+      { label: '( )', value: '\\left( \\right)', cursorOffset: -8 },
+      { label: '[ ]', value: '\\left[ \\right]', cursorOffset: -8 },
+      { label: '{ }', value: '\\left\\{ \\right\\}', cursorOffset: -9 },
+      { label: '|x|', value: '\\left| \\right|', cursorOffset: -8 },
+      { label: '·', value: '\\cdot ' },
+      { label: '×', value: '\\times ' },
+      { label: '÷', value: '\\div ' },
+      { label: '±', value: '\\pm ' },
+      { label: '∓', value: '\\mp ' },
+    ]
+  },
+  operatorler: {
+    label: 'Operatörler',
+    items: [
+      { label: '∑', value: '\\sum_{i=1}^{n} ' },
+      { label: '∏', value: '\\prod_{i=1}^{n} ' },
+      { label: '∫', value: '\\int_{a}^{b} ' },
+      { label: '∮', value: '\\oint ' },
+      { label: 'lim', value: '\\lim_{x \\to \\infty} ' },
+      { label: 'log', value: '\\log_{} ', cursorOffset: -1 },
+      { label: 'ln', value: '\\ln ' },
+      { label: 'sin', value: '\\sin ' },
+      { label: 'cos', value: '\\cos ' },
+      { label: 'tan', value: '\\tan ' },
+      { label: 'cot', value: '\\cot ' },
+      { label: 'd/dx', value: '\\frac{d}{dx} ' },
+      { label: '∂/∂x', value: '\\frac{\\partial}{\\partial x} ' },
+    ]
+  },
+  iliskiler: {
+    label: 'İlişkiler',
+    items: [
+      { label: '=', value: '= ' },
+      { label: '≠', value: '\\neq ' },
+      { label: '≤', value: '\\leq ' },
+      { label: '≥', value: '\\geq ' },
+      { label: '<', value: '< ' },
+      { label: '>', value: '> ' },
+      { label: '≈', value: '\\approx ' },
+      { label: '≡', value: '\\equiv ' },
+      { label: '∼', value: '\\sim ' },
+      { label: '∝', value: '\\propto ' },
+      { label: '∈', value: '\\in ' },
+      { label: '∉', value: '\\notin ' },
+      { label: '⊂', value: '\\subset ' },
+      { label: '⊆', value: '\\subseteq ' },
+      { label: '∪', value: '\\cup ' },
+      { label: '∩', value: '\\cap ' },
+      { label: '∅', value: '\\emptyset ' },
+    ]
+  },
+  yunan: {
+    label: 'Grek',
+    items: [
+      { label: 'α', value: '\\alpha ' }, { label: 'β', value: '\\beta ' },
+      { label: 'γ', value: '\\gamma ' }, { label: 'δ', value: '\\delta ' },
+      { label: 'ε', value: '\\varepsilon ' }, { label: 'ζ', value: '\\zeta ' },
+      { label: 'η', value: '\\eta ' }, { label: 'θ', value: '\\theta ' },
+      { label: 'λ', value: '\\lambda ' }, { label: 'μ', value: '\\mu ' },
+      { label: 'π', value: '\\pi ' }, { label: 'ρ', value: '\\rho ' },
+      { label: 'σ', value: '\\sigma ' }, { label: 'τ', value: '\\tau ' },
+      { label: 'φ', value: '\\varphi ' }, { label: 'ω', value: '\\omega ' },
+      { label: 'Γ', value: '\\Gamma ' }, { label: 'Δ', value: '\\Delta ' },
+      { label: 'Θ', value: '\\Theta ' }, { label: 'Λ', value: '\\Lambda ' },
+      { label: 'Π', value: '\\Pi ' }, { label: 'Σ', value: '\\Sigma ' },
+      { label: 'Φ', value: '\\Phi ' }, { label: 'Ω', value: '\\Omega ' },
+    ]
+  },
+  oklar: {
+    label: 'Oklar',
+    items: [
+      { label: '→', value: '\\rightarrow ' },
+      { label: '←', value: '\\leftarrow ' },
+      { label: '↔', value: '\\leftrightarrow ' },
+      { label: '⇒', value: '\\Rightarrow ' },
+      { label: '⇐', value: '\\Leftarrow ' },
+      { label: '⇔', value: '\\Leftrightarrow ' },
+      { label: '↑', value: '\\uparrow ' },
+      { label: '↓', value: '\\downarrow ' },
+      { label: '↦', value: '\\mapsto ' },
+      { label: '∞', value: '\\infty ' },
+      { label: '∂', value: '\\partial ' },
+      { label: '∇', value: '\\nabla ' },
+      { label: '°', value: '^{\\circ}' },
+      { label: '∠', value: '\\angle ' },
+      { label: '⊥', value: '\\perp ' },
+      { label: '∥', value: '\\parallel ' },
+      { label: '△', value: '\\triangle ' },
+    ]
+  },
+  yapilar: {
+    label: 'Yapılar',
+    items: [
+      { label: 'Matris 2×2', value: '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}' },
+      { label: 'Matris 3×3', value: '\\begin{pmatrix} a & b & c \\\\ d & e & f \\\\ g & h & i \\end{pmatrix}' },
+      { label: 'Determinant', value: '\\begin{vmatrix} a & b \\\\ c & d \\end{vmatrix}' },
+      { label: 'Eşitlik sistemi', value: '\\begin{cases} x + y = 5 \\\\ x - y = 1 \\end{cases}' },
+      { label: 'Üstte/altta', value: '\\overset{!}{=}' },
+      { label: 'Üst çubuk', value: '\\overline{AB}' },
+      { label: 'Alt çubuk', value: '\\underline{x}' },
+      { label: 'Şapka', value: '\\hat{x}' },
+      { label: 'Vektör', value: '\\vec{v}' },
+      { label: 'Nokta', value: '\\dot{x}' },
+      { label: 'Hizalı', value: '\\begin{aligned} a &= b \\\\ c &= d \\end{aligned}' },
+    ]
+  }
+};
+
+const LatexEditor = ({ onInsert, onClose }) => {
+  const [latex, setLatex] = useState('');
+  const [displayMode, setDisplayMode] = useState(false);
+  const [activeCategory, setActiveCategory] = useState('temel');
+  const textareaRef = useRef(null);
+  const katexReady = useKatex();
+
+  const insertAtCursor = (item) => {
+    const ta = textareaRef.current;
+    if (!ta) {
+      setLatex(latex + item.value);
+      return;
+    }
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const before = latex.slice(0, start);
+    const selected = latex.slice(start, end);
+    const after = latex.slice(end);
+    // Seçili metin varsa onu {} içine yerleştir
+    let value = item.value;
+    if (selected && value.includes('{}')) {
+      value = value.replace('{}', `{${selected}}`);
+    }
+    const newLatex = before + value + after;
+    setLatex(newLatex);
+    // Kursörü uygun yere konumla
+    setTimeout(() => {
+      ta.focus();
+      const offset = item.cursorOffset ?? 0;
+      const pos = before.length + value.length + offset;
+      ta.setSelectionRange(pos, pos);
+    }, 0);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full p-4 sm:p-5 my-2 sm:my-4">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold text-slate-800">LaTeX Matematik Editörü</h3>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-700 text-2xl">×</button>
+        </div>
+
+        {/* Kategori sekmeleri */}
+        <div className="flex gap-1 mb-2 border-b border-slate-200 overflow-x-auto">
+          {Object.entries(LATEX_CATEGORIES).map(([key, cat]) => (
+            <button
+              key={key}
+              onClick={() => setActiveCategory(key)}
+              className={`px-3 py-1.5 text-sm rounded-t whitespace-nowrap ${
+                activeCategory === key
+                  ? 'bg-slate-800 text-white'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >{cat.label}</button>
+          ))}
+        </div>
+
+        {/* Sembol paleti */}
+        <div className="grid grid-cols-6 sm:grid-cols-8 gap-1 mb-3 p-1 bg-slate-50 rounded border border-slate-200">
+          {LATEX_CATEGORIES[activeCategory].items.map((item, i) => (
+            <button
+              key={i}
+              onClick={() => insertAtCursor(item)}
+              title={item.value}
+              className="border border-slate-300 bg-white rounded px-2 py-2 hover:bg-slate-100 text-sm min-h-[36px]"
+            >{item.label}</button>
+          ))}
+        </div>
+
+        {/* Mode toggle */}
+        <div className="flex items-start gap-2 mb-2 p-3 bg-slate-50 border border-slate-200 rounded">
+          <input
+            type="checkbox"
+            id="displayModeCheck"
+            checked={displayMode}
+            onChange={(e) => setDisplayMode(e.target.checked)}
+            className="mt-1"
+          />
+          <label htmlFor="displayModeCheck" className="text-sm cursor-pointer block">
+            <div className="font-semibold mb-1">Büyük ve ortalı göster (blok matematik)</div>
+            <div className="text-slate-600 text-xs leading-relaxed">
+              Kapalıyken (varsayılan): İfade <b>cümlenin içinde</b>, normal yazıyla aynı boyutta görünür. Cümleye karışan kısa şeyler için uygundur. <br/>
+              <span className="text-slate-500">Örnek: "<i>x² + 3x − 4 = 0</i> denklemini çözünüz."</span>
+              <br/><br/>
+              Açıkken: İfade <b>kendi satırına</b> alınır, daha büyük yazılır ve ortalanır. Yüksek/karmaşık ifadeler için uygundur — kesirlerin payı/paydası ve kök içleri daha okunur olur, ∑, ∫, lim gibi operatörlerin alt/üst sınırları sığar.
+              <br/><br/>
+              <span className="text-slate-500">Teknik not: Kapalıyken soru metninize <code className="bg-white px-1 border border-slate-200 rounded">$...$</code>, açıkken <code className="bg-white px-1 border border-slate-200 rounded">$$...$$</code> olarak eklenir.</span>
+            </div>
+          </label>
+        </div>
+
+        <textarea
+          ref={textareaRef}
+          value={latex}
+          onChange={(e) => setLatex(e.target.value)}
+          placeholder="LaTeX kodu yazın... örn: \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}"
+          className="w-full border border-slate-300 rounded p-2 h-24 font-mono text-sm"
+        />
+
+        {/* Canlı önizleme */}
+        <div className="mt-3 p-4 bg-white border-2 border-slate-200 rounded min-h-[80px] flex items-center justify-center">
+          <div className="text-center">
+            {!katexReady && <span className="text-slate-400 text-sm">KaTeX yükleniyor...</span>}
+            {katexReady && (
+              <div
+                style={{ fontSize: displayMode ? '1.4em' : '1.1em' }}
+                dangerouslySetInnerHTML={{ __html: renderLatex(latex, displayMode) }}
+              />
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center mt-4">
+          <div className="text-xs text-slate-500">
+            💡 İpucu: Önce seçim yapıp sonra "√" gibi bir kalıba tıklarsanız seçim içine yerleşir
+          </div>
+          <div className="flex gap-2">
+            <button onClick={onClose} className="px-4 py-2 border border-slate-300 rounded hover:bg-slate-100">İptal</button>
+            <button
+              onClick={() => { onInsert(displayMode ? `$$${latex}$$` : `$${latex}$`); onClose(); }}
+              className="px-4 py-2 bg-slate-800 text-white rounded hover:bg-slate-900"
+              disabled={!latex.trim()}
+            >Soruya Ekle</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// KaTeX CDN'den yüklensin diye global state
+let katexLoadPromise = null;
+const loadKatex = () => {
+  if (typeof window === 'undefined') return Promise.resolve();
+  if (window.katex) return Promise.resolve(window.katex);
+  if (katexLoadPromise) return katexLoadPromise;
+
+  katexLoadPromise = new Promise((resolve, reject) => {
+    // CSS
+    if (!document.querySelector('link[data-katex]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css';
+      link.setAttribute('data-katex', 'true');
+      document.head.appendChild(link);
+    }
+    // JS
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js';
+    script.onload = () => resolve(window.katex);
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+  return katexLoadPromise;
+};
+
+// PDF.js CDN'den yüklensin diye
+let pdfjsLoadPromise = null;
+const loadPdfJs = () => {
+  if (typeof window === 'undefined') return Promise.resolve();
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if (pdfjsLoadPromise) return pdfjsLoadPromise;
+
+  // Babel'in dokunmaması için dinamik import'u bir module script içinde, runtime'da çalıştırıyoruz
+  pdfjsLoadPromise = new Promise((resolve, reject) => {
+    window.__pdfjsResolve = (mod) => {
+      window.pdfjsLib = mod;
+      mod.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/build/pdf.worker.min.mjs';
+      resolve(mod);
+    };
+    window.__pdfjsReject = (err) => reject(err);
+    const s = document.createElement('script');
+    s.type = 'module';
+    s.textContent =
+      "import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/build/pdf.min.mjs')" +
+      ".then(m => window.__pdfjsResolve(m)).catch(e => window.__pdfjsReject(e));";
+    document.head.appendChild(s);
+  });
+  return pdfjsLoadPromise;
+};
+
+// Global olarak KaTeX yüklenince haberdar olmak isteyen bileşenler
+let _katexReady = typeof window !== 'undefined' && !!window.katex;
+const _katexSubscribers = new Set();
+const _notifyKatexReady = () => {
+  _katexReady = true;
+  _katexSubscribers.forEach(fn => fn());
+};
+
+// KaTeX yüklenip yüklenmediğini izleyen hook
+const useKatex = () => {
+  const [ready, setReady] = useState(_katexReady);
+  useEffect(() => {
+    if (_katexReady) return;
+    const onReady = () => setReady(true);
+    _katexSubscribers.add(onReady);
+    loadKatex().then(() => _notifyKatexReady()).catch(() => {});
+    return () => { _katexSubscribers.delete(onReady); };
+  }, []);
+  return ready;
+};
+
+// HTML escape — kullanıcı metnini güvenli HTML'e çevir
+const escapeHtml = (s) => {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
+// KaTeX ile LaTeX render et (HTML string döner)
+const renderLatex = (latex, displayMode = false) => {
+  if (!latex) return '<span style="color:#94a3b8">...</span>';
+  if (typeof window === 'undefined' || !window.katex) {
+    return `<span style="font-family:monospace;color:#64748b">${escapeHtml(latex)}</span>`;
+  }
+  try {
+    return window.katex.renderToString(latex, {
+      throwOnError: false,
+      displayMode,
+      errorColor: '#dc2626',
+      strict: false,
+      trust: true,
+      macros: {
+        // Türkçe matematik için yararlı kısaltmalar
+        '\\R': '\\mathbb{R}',
+        '\\N': '\\mathbb{N}',
+        '\\Z': '\\mathbb{Z}',
+        '\\Q': '\\mathbb{Q}'
+      }
+    });
+  } catch (e) {
+    return `<span style="color:#dc2626">${escapeHtml(latex)}</span>`;
+  }
+};
+
+// Bir LaTeX ifadesini render eden bileşen (KaTeX yüklenmesini bekler)
+const Latex = ({ children, displayMode = false }) => {
+  const ready = useKatex();
+  const html = ready ? renderLatex(children, displayMode) : `<span style="font-family:monospace;color:#64748b">${escapeHtml(children || '')}</span>`;
+  return <span dangerouslySetInnerHTML={{ __html: html }} />;
+};
+
+// Soru içindeki $...$ ve $$...$$ latex parçalarını render et
+// Cache: aynı metin için aynı sonucu döndürür, sürekli yeniden parse etmemek için
+const _renderCache = new Map();
+const renderQuestionText = (text) => {
+  if (!text) return '';
+  // Cache anahtarı KaTeX'in yüklü olup olmadığına da bağlı
+  const katexReady = typeof window !== 'undefined' && !!window.katex;
+  const cacheKey = (katexReady ? '1:' : '0:') + text;
+  if (_renderCache.has(cacheKey)) return _renderCache.get(cacheKey);
+
+  const parts = text.split(/(\$\$[^$]+\$\$|\$[^$\n]+\$)/g);
+  const result = parts.map((p) => {
+    if (p.startsWith('$$') && p.endsWith('$$')) {
+      return `<span class="latex-block">${renderLatex(p.slice(2, -2), true)}</span>`;
+    }
+    if (p.startsWith('$') && p.endsWith('$') && p.length > 2) {
+      return `<span class="latex-inline">${renderLatex(p.slice(1, -1), false)}</span>`;
+    }
+    // LaTeX olmayan düz metin: HTML kaçışı yap, sonra \n -> <br/>
+    return escapeHtml(p).replace(/\n/g, '<br/>');
+  }).join('');
+
+  // Cache büyümesin diye limit
+  if (_renderCache.size > 500) {
+    const firstKey = _renderCache.keys().next().value;
+    _renderCache.delete(firstKey);
+  }
+  _renderCache.set(cacheKey, result);
+  return result;
+};
+
+// ============== SAYI DOĞRUSU ==============
+
+// Sayı input'u: kullanıcı silip yeniden yazarken "boş" durumu da kabul eder.
+// Geçerli bir sayı girildiğinde parent'a iletir, geçersiz/boş durumda parent değeri korunur.
+const NumericInput = ({ value, onChange, integer = false, className = '', ...rest }) => {
+  // İçeride yazıyı raw string olarak tutuyoruz
+  const [raw, setRaw] = useState(String(value));
+  const inputRef = useRef(null);
+
+  // Dışarıdan value değişirse ve input odakta değilse raw'ı senkronla
+  useEffect(() => {
+    if (document.activeElement === inputRef.current) return; // odakta, dokunma
+    const parsed = integer ? parseInt(raw, 10) : parseFloat(raw);
+    if (isNaN(parsed) || parsed !== value) {
+      setRaw(String(value));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  return (
+    <input
+      ref={inputRef}
+      type="text"
+      inputMode="decimal"
+      value={raw}
+      onChange={(e) => {
+        const v = e.target.value;
+        setRaw(v);
+        // Boş veya yarım sayı ise parent'a bildirme (parent eski değeri korur)
+        if (v === '' || v === '-' || v === '.' || v === '-.') return;
+        const parsed = integer ? parseInt(v, 10) : parseFloat(v);
+        if (!isNaN(parsed)) onChange(parsed);
+      }}
+      onBlur={() => {
+        // Odak çıkınca: raw geçerli sayı değilse parent'taki değere geri dön
+        const parsed = integer ? parseInt(raw, 10) : parseFloat(raw);
+        if (isNaN(parsed)) {
+          setRaw(String(value));
+        } else {
+          // Görüntüyü normalize et (örn. "5." → "5")
+          setRaw(String(parsed));
+        }
+      }}
+      className={className}
+      {...rest}
+    />
+  );
+};
+
+const NumberLineEditor = ({ onSave, onClose, initial }) => {
+  const [start, setStart] = useState(initial?.start ?? 0);
+  const [end, setEnd] = useState(initial?.end ?? 10);
+  const [tickHeight, setTickHeight] = useState(initial?.tickHeight ?? 10);
+  const [mainTickHeight, setMainTickHeight] = useState(initial?.mainTickHeight ?? 16);
+  const [divisions, setDivisions] = useState(initial?.divisions ?? []); // [{from, to, parts}]
+  const [labels, setLabels] = useState(initial?.labels ?? {}); // { position: { above: '', below: '' } }
+  const [showMainNumbers, setShowMainNumbers] = useState(initial?.showMainNumbers ?? true);
+
+  // Yeni bölme ekleme formu
+  const [divFrom, setDivFrom] = useState('');
+  const [divTo, setDivTo] = useState('');
+  const [divParts, setDivParts] = useState(3);
+  const [divTickHeight, setDivTickHeight] = useState(8);
+
+  // LaTeX editörü için: hangi etiket için açıldı? { pos, where }
+  const [latexTarget, setLatexTarget] = useState(null);
+
+  const addDivision = () => {
+    const f = parseFloat(divFrom);
+    const t = parseFloat(divTo);
+    const p = parseInt(divParts);
+    if (isNaN(f) || isNaN(t) || isNaN(p) || p < 2) return;
+    setDivisions([...divisions, { from: f, to: t, parts: p, tickHeight: divTickHeight, id: uniqueId() }]);
+    setDivFrom(''); setDivTo('');
+  };
+
+  const removeDivision = (id) => {
+    setDivisions(divisions.filter(d => d.id !== id));
+  };
+
+  // SVG çizimi için boyutlar
+  const svgWidth = 700;
+  const svgHeight = 120;
+  const padding = 40;
+  const lineY = 60;
+  const range = end - start;
+  const xOf = (val) => padding + ((val - start) / range) * (svgWidth - 2 * padding);
+
+  // Aralık geçerli mi?
+  const validRange = isFinite(start) && isFinite(end) && (end - start > 0) && (end - start <= 1000);
+
+  // Tüm çentik pozisyonlarını topla (sadece geçerli aralıkta)
+  const allTicks = [];
+  if (validRange) {
+    // Ana çentikler (tam sayılar)
+    for (let i = Math.ceil(start); i <= Math.floor(end); i++) {
+      allTicks.push({ pos: i, height: mainTickHeight, isMain: true, key: `main-${i}` });
+    }
+    // Bölme çentikleri
+    divisions.forEach((div, di) => {
+      const step = (div.to - div.from) / div.parts;
+      for (let j = 1; j < div.parts; j++) {
+        const pos = div.from + step * j;
+        allTicks.push({ pos, height: div.tickHeight, isMain: false, key: `div-${di}-${j}` });
+      }
+    });
+  }
+
+  const updateLabel = (pos, where, value) => {
+    const key = pos.toString();
+    setLabels({
+      ...labels,
+      [key]: { ...(labels[key] || {}), [where]: value }
+    });
+  };
+
+  const getLabel = (pos, where) => {
+    const key = pos.toString();
+    const v = labels[key]?.[where];
+    // null = açıkça gizlendi, undefined = dokunulmadı
+    if (v === null) return null;
+    return v ?? '';
+  };
+
+  const handleSave = () => {
+    onSave({ start, end, tickHeight, mainTickHeight, divisions, labels, showMainNumbers });
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full p-4 sm:p-6 my-2 sm:my-8">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold text-slate-800">Sayı Doğrusu Oluştur</h3>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-700 text-2xl">×</button>
+        </div>
+
+        {/* Aralık */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div>
+            <label className="text-xs text-slate-600">Başlangıç</label>
+            <NumericInput value={start} onChange={setStart}
+              className="w-full border border-slate-300 rounded px-2 py-1" />
+          </div>
+          <div>
+            <label className="text-xs text-slate-600">Bitiş</label>
+            <NumericInput value={end} onChange={setEnd}
+              className="w-full border border-slate-300 rounded px-2 py-1" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div>
+            <label className="text-xs text-slate-600">Ana çentik boyu (px)</label>
+            <NumericInput value={mainTickHeight} onChange={setMainTickHeight} integer
+              className="w-full border border-slate-300 rounded px-2 py-1" />
+          </div>
+          <div className="flex items-end">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={showMainNumbers} onChange={(e) => setShowMainNumbers(e.target.checked)} />
+              Ana sayıları (tam sayıları) göster
+            </label>
+          </div>
+        </div>
+
+        {/* Bölme ekle */}
+        <div className="border border-slate-200 rounded p-3 mb-4 bg-slate-50">
+          <div className="text-sm font-semibold mb-2">Yeni eş bölme ekle</div>
+          <div className="grid grid-cols-5 gap-2 items-end">
+            <div>
+              <label className="text-xs text-slate-600">Nereden</label>
+              <input type="number" step="any" value={divFrom} onChange={(e) => setDivFrom(e.target.value)}
+                className="w-full border border-slate-300 rounded px-2 py-1" />
+            </div>
+            <div>
+              <label className="text-xs text-slate-600">Nereye</label>
+              <input type="number" step="any" value={divTo} onChange={(e) => setDivTo(e.target.value)}
+                className="w-full border border-slate-300 rounded px-2 py-1" />
+            </div>
+            <div>
+              <label className="text-xs text-slate-600">Kaç parçaya</label>
+              <NumericInput value={divParts} onChange={setDivParts} integer min="2"
+                className="w-full border border-slate-300 rounded px-2 py-1" />
+            </div>
+            <div>
+              <label className="text-xs text-slate-600">Çentik boyu (px)</label>
+              <NumericInput value={divTickHeight} onChange={setDivTickHeight} integer
+                className="w-full border border-slate-300 rounded px-2 py-1" />
+            </div>
+            <button onClick={addDivision} className="bg-slate-800 text-white rounded px-3 py-1.5 hover:bg-slate-900">
+              <Plus className="w-4 h-4 inline" /> Ekle
+            </button>
+          </div>
+          {divisions.length > 0 && (
+            <div className="mt-3 space-y-1">
+              {divisions.map(d => (
+                <div key={d.id} className="flex items-center justify-between bg-white border border-slate-200 rounded px-2 py-1 text-sm">
+                  <span>{d.from} ile {d.to} arası → {d.parts} eş parça (çentik: {d.tickHeight}px)</span>
+                  <button onClick={() => removeDivision(d.id)} className="text-red-500 hover:text-red-700">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Önizleme */}
+        <div className="border border-slate-200 rounded p-3 mb-4 bg-white overflow-x-auto">
+          <div className="text-xs text-slate-500 mb-2">Önizleme (çentiklerin alt/üst yazılarını aşağıdan düzenleyin):</div>
+          <NumberLineDisplay data={{ start, end, mainTickHeight, divisions, labels, showMainNumbers }} />
+        </div>
+
+        {/* Etiket düzenleme */}
+        <div className="border border-slate-200 rounded p-3 mb-4 max-h-64 overflow-y-auto">
+          <div className="text-sm font-semibold mb-1">Çentik etiketleri</div>
+          <div className="text-xs text-slate-500 mb-2">
+            Boş bırakırsanız ana çentiklerde sayı görünür. Otomatik sayıyı da kaldırmak için <span className="font-mono">🚫</span> butonuna basın (örn. 0'ı veya 1'i tamamen kaldırmak için).
+            Matematik için <code className="bg-slate-100 px-1">$\frac{`{1}`}{`{2}`}$</code> gibi <code className="bg-slate-100 px-1">$...$</code> arası LaTeX yazabilir veya <span className="font-mono font-bold">fx</span> butonuna basabilirsiniz.
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-xs font-semibold text-slate-600 mb-1">
+            <div>Konum</div>
+            <div>Üst yazı</div>
+            <div>Alt yazı</div>
+          </div>
+          {allTicks.map(t => {
+            const aboveVal = getLabel(t.pos, 'above');
+            const belowVal = getLabel(t.pos, 'below');
+            const aboveHidden = aboveVal === null;
+            const belowHidden = belowVal === null;
+            return (
+            <div key={`edit-${t.key}`} className="grid grid-cols-3 gap-2 mb-1 items-center">
+              <div className="text-sm font-mono">{t.pos} {!t.isMain && <span className="text-xs text-slate-400">(bölme)</span>}</div>
+              <div className="flex gap-1">
+                <input
+                  type="text"
+                  value={aboveHidden ? '' : (aboveVal || '')}
+                  onChange={(e) => updateLabel(t.pos, 'above', e.target.value)}
+                  disabled={aboveHidden}
+                  className={`flex-1 min-w-0 border border-slate-300 rounded px-2 py-0.5 text-sm ${aboveHidden ? 'bg-slate-100 line-through text-slate-400' : ''}`}
+                  placeholder="üstüne yazılacak"
                 />
-            </svg>
-            <h4 style="margin: 0; font-weight: 500; color: black">App Name</h4>
-        </header>
+                <button
+                  type="button"
+                  onClick={() => setLatexTarget({ pos: t.pos, where: 'above' })}
+                  disabled={aboveHidden}
+                  className="text-xs px-2 py-0.5 border border-slate-300 rounded hover:bg-slate-100 font-mono font-bold disabled:opacity-40"
+                  title="LaTeX editörü"
+                >fx</button>
+                <button
+                  type="button"
+                  onClick={() => updateLabel(t.pos, 'above', aboveHidden ? '' : null)}
+                  className={`text-xs px-2 py-0.5 border rounded ${aboveHidden ? 'bg-slate-700 text-white border-slate-700' : 'border-slate-300 hover:bg-slate-100'}`}
+                  title={aboveHidden ? 'Üst yazıyı geri aç' : 'Üst yazıyı gizle (otomatik sayıyı da)'}
+                >{aboveHidden ? '👁' : '🚫'}</button>
+              </div>
+              <div className="flex gap-1">
+                <input
+                  type="text"
+                  value={belowHidden ? '' : (belowVal || '')}
+                  onChange={(e) => updateLabel(t.pos, 'below', e.target.value)}
+                  disabled={belowHidden}
+                  className={`flex-1 min-w-0 border border-slate-300 rounded px-2 py-0.5 text-sm ${belowHidden ? 'bg-slate-100 line-through text-slate-400' : ''}`}
+                  placeholder={t.isMain && showMainNumbers ? String(t.pos) : 'altına yazılacak'}
+                />
+                <button
+                  type="button"
+                  onClick={() => setLatexTarget({ pos: t.pos, where: 'below' })}
+                  disabled={belowHidden}
+                  className="text-xs px-2 py-0.5 border border-slate-300 rounded hover:bg-slate-100 font-mono font-bold disabled:opacity-40"
+                  title="LaTeX editörü"
+                >fx</button>
+                <button
+                  type="button"
+                  onClick={() => updateLabel(t.pos, 'below', belowHidden ? '' : null)}
+                  className={`text-xs px-2 py-0.5 border rounded ${belowHidden ? 'bg-slate-700 text-white border-slate-700' : 'border-slate-300 hover:bg-slate-100'}`}
+                  title={belowHidden ? 'Alt yazıyı geri aç' : 'Alt yazıyı gizle (otomatik sayıyı da)'}
+                >{belowHidden ? '👁' : '🚫'}</button>
+              </div>
+            </div>
+            );
+          })}
+        </div>
 
-        <script>
-            if ("serviceWorker" in navigator) {
-                window.addEventListener("load", function () {
-                    navigator.serviceWorker
-                        .register("/serviceWorker.js")
-                        .then((registration) => {
-                            console.log("SW registration successful");
-                        });
-                });
+        <div className="flex justify-end gap-2">
+          <button onClick={onClose} className="px-4 py-2 border border-slate-300 rounded hover:bg-slate-100">İptal</button>
+          <button onClick={handleSave} className="px-4 py-2 bg-slate-800 text-white rounded hover:bg-slate-900">Soruya Ekle</button>
+        </div>
+
+        {latexTarget && (
+          <LatexEditor
+            onInsert={(latex) => {
+              // Mevcut etiketin sonuna ekle (kullanıcı zaten yazdıysa korusun)
+              const existing = getLabel(latexTarget.pos, latexTarget.where);
+              const newValue = existing ? (existing + ' ' + latex) : latex;
+              updateLabel(latexTarget.pos, latexTarget.where, newValue);
+            }}
+            onClose={() => setLatexTarget(null)}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Sayı doğrusu render (yazılı kağıdında)
+const NumberLineDisplayImpl = ({ data }) => {
+  // KaTeX yüklendiğinde re-render için
+  useKatex();
+  if (!data) return null;
+  const { start, end, mainTickHeight, divisions, labels, showMainNumbers } = data;
+  // Geçersiz aralık koruması: çok büyük ya da geçersiz aralıklarda render etmeyi reddet
+  if (typeof start !== 'number' || typeof end !== 'number' || !isFinite(start) || !isFinite(end)) return null;
+  if (end - start <= 0) return null;
+  if (end - start > 1000) return null; // Çok fazla çentik tarayıcıyı kilitler
+  const svgWidth = 600;
+  const svgHeight = 90;
+  const padding = 35;
+  const lineY = 45;
+  const range = end - start;
+  const xOf = (val) => padding + ((val - start) / range) * (svgWidth - 2 * padding);
+
+  const allTicks = [];
+  for (let i = Math.ceil(start); i <= Math.floor(end); i++) {
+    allTicks.push({ pos: i, height: mainTickHeight, isMain: true, key: `main-${i}` });
+  }
+  divisions.forEach((div, di) => {
+    const step = (div.to - div.from) / div.parts;
+    for (let j = 1; j < div.parts; j++) {
+      const pos = div.from + step * j;
+      allTicks.push({ pos, height: div.tickHeight, isMain: false, key: `div-${di}-${j}` });
+    }
+  });
+
+  const getLabel = (pos, where) => {
+    const key = pos.toString();
+    const v = labels[key]?.[where];
+    // null = açıkça gizlendi (hiçbir şey gösterilmesin), undefined = dokunulmadı (otomatik sayı kullanılabilir)
+    if (v === null) return null;
+    return v ?? '';
+  };
+
+  // Bir etiket LaTeX içeriyor mu? ($..$ veya $$..$$)
+  const hasLatex = (s) => typeof s === 'string' && /\$[^$]+\$/.test(s);
+
+  // foreignObject ile bir etiketi (LaTeX olabilir) çiz
+  // anchor: 'above' veya 'below' — pozisyon farkı için
+  const renderLabel = (text, x, y, anchor) => {
+    const fobjWidth = 60; // makul bir etiket genişliği
+    const fobjHeight = 24;
+    // x ortalı olacak şekilde foreignObject'in sol üst köşesi
+    const fx = x - fobjWidth / 2;
+    const fy = anchor === 'above' ? y - fobjHeight : y;
+    return (
+      <foreignObject x={fx} y={fy} width={fobjWidth} height={fobjHeight}>
+        <div
+          xmlns="http://www.w3.org/1999/xhtml"
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: anchor === 'above' ? 'flex-end' : 'flex-start',
+            justifyContent: 'center',
+            fontFamily: 'Times New Roman, serif',
+            fontSize: '12px',
+            lineHeight: 1.1,
+            textAlign: 'center'
+          }}
+          dangerouslySetInnerHTML={{ __html: renderQuestionText(text) }}
+        />
+      </foreignObject>
+    );
+  };
+
+  return (
+    <svg
+      viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+      preserveAspectRatio="xMidYMid meet"
+      className="block"
+      style={{ width: '100%', maxWidth: `${svgWidth}px`, height: 'auto' }}
+    >
+      <line x1={padding - 15} y1={lineY} x2={svgWidth - padding + 15} y2={lineY} stroke="#000" strokeWidth="1.5" />
+      <polygon points={`${padding - 20},${lineY} ${padding - 10},${lineY - 5} ${padding - 10},${lineY + 5}`} fill="#000" />
+      <polygon points={`${svgWidth - padding + 20},${lineY} ${svgWidth - padding + 10},${lineY - 5} ${svgWidth - padding + 10},${lineY + 5}`} fill="#000" />
+      {allTicks.map(t => {
+        const x = xOf(t.pos);
+        const aboveLabel = getLabel(t.pos, 'above');
+        const belowLabel = getLabel(t.pos, 'below');
+        // null = açıkça gizli; '' veya undefined = otomatik kullan
+        const aboveHidden = aboveLabel === null;
+        const belowHidden = belowLabel === null;
+        const defaultBelow = t.isMain && showMainNumbers && !belowHidden ? String(t.pos) : '';
+        const finalAbove = aboveHidden ? '' : aboveLabel;
+        const finalBelow = belowHidden ? '' : (belowLabel || defaultBelow);
+        return (
+          <g key={t.key}>
+            <line x1={x} y1={lineY - t.height / 2} x2={x} y2={lineY + t.height / 2} stroke="#000" strokeWidth="1.2" />
+            {finalAbove && (
+              hasLatex(finalAbove)
+                ? renderLabel(finalAbove, x, lineY - t.height / 2 - 3, 'above')
+                : <text x={x} y={lineY - t.height / 2 - 5} textAnchor="middle" fontSize="12" fontFamily="Times New Roman">{finalAbove}</text>
+            )}
+            {finalBelow && (
+              hasLatex(finalBelow)
+                ? renderLabel(finalBelow, x, lineY + t.height / 2 + 2, 'below')
+                : <text x={x} y={lineY + t.height / 2 + 13} textAnchor="middle" fontSize="12" fontFamily="Times New Roman">{finalBelow}</text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+};
+
+const NumberLineDisplay = React.memo(NumberLineDisplayImpl);
+
+// ============== TABLO VE GRAFİKLER ==============
+
+// Varsayılan renk paleti
+const CHART_COLORS = ['#3b82f6', '#ef4444', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16'];
+
+// Çetele işaretleri (卌 = 5'lik grup, kalanı tekli çizgi)
+const tallyMarks = (n) => {
+  let num = Math.floor(Number(n) || 0);
+  if (num < 0) num = 0;
+  if (num > 200) num = 200; // güvenlik sınırı (aşırı büyük değerlerde donmayı önle)
+  const groups = Math.floor(num / 5);
+  const rem = num % 5;
+  let out = '';
+  for (let i = 0; i < groups; i++) out += '卌 '; // 5'lik grup
+  out += '|'.repeat(rem);
+  return out.trim();
+};
+
+const ChartDisplayImpl = ({ data }) => {
+  useKatex();
+  if (!data) return null;
+  const { chartType, title, xLabel, yLabel, filled, rows = [], series = null } = data;
+  const valid = rows.filter(r => r.label !== undefined);
+  // Çoklu seri var mı? (sadece sütun grafiğinde geçerli)
+  const multiSeries = Array.isArray(series) && series.length > 0;
+  // maxVal: çoklu seride tüm değerlerin maksimumu
+  const maxVal = multiSeries
+    ? Math.max(1, ...valid.flatMap(r => (r.values || []).map(v => Number(v) || 0)))
+    : Math.max(1, ...valid.map(r => Number(r.value) || 0));
+  const total = valid.reduce((s, r) => s + (Number(r.value) || 0), 0);
+
+  const showVal = (v) => filled ? (v ?? '') : '';
+
+  // === TABLOLAR ===
+  if (chartType === 'frequencyTable' || chartType === 'tallyTable') {
+    const isTally = chartType === 'tallyTable';
+    return (
+      <div className="w-full" style={{ fontFamily: 'Times New Roman' }}>
+        {title && <div className="text-center font-bold text-sm mb-1" dangerouslySetInnerHTML={{ __html: renderQuestionText(title) }} />}
+        <table className="w-full border-collapse border border-black text-sm">
+          <thead>
+            <tr>
+              <th className="border border-black px-2 py-1">{xLabel || 'Kategori'}</th>
+              <th className="border border-black px-2 py-1">{isTally ? 'Çetele' : (yLabel || 'Sıklık')}</th>
+              {isTally && <th className="border border-black px-2 py-1">{yLabel || 'Sıklık'}</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {valid.map((r, i) => (
+              <tr key={i}>
+                <td className="border border-black px-2 py-1 text-center" dangerouslySetInnerHTML={{ __html: renderQuestionText(String(r.label ?? '')) }} />
+                <td className="border border-black px-2 py-1 text-center" style={{ minHeight: '1.5em' }}>
+                  {isTally ? (filled ? tallyMarks(Number(r.value) || 0) : '') : showVal(r.value)}
+                </td>
+                {isTally && <td className="border border-black px-2 py-1 text-center">{showVal(r.value)}</td>}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  // === GRAFİKLER (SVG) ===
+  const W = 360, H = 240;
+  const padL = 40, padR = 20, padT = title ? 30 : 15, padB = 45;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+  const n = valid.length || 1;
+
+  const svgWrap = (children) => (
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" style={{ width: '100%', maxWidth: `${W}px`, height: 'auto' }} className="block mx-auto">
+      {title && <text x={W/2} y={18} textAnchor="middle" fontSize="14" fontWeight="bold" fontFamily="Times New Roman">{title}</text>}
+      {children}
+    </svg>
+  );
+
+  // Y ekseni grid + etiketleri (sütun, çizgi, nokta için ortak)
+  const yTicks = 5;
+  const yAxis = () => {
+    const ticks = [];
+    for (let i = 0; i <= yTicks; i++) {
+      const v = (maxVal / yTicks) * i;
+      const y = padT + plotH - (plotH * i / yTicks);
+      ticks.push(
+        <g key={i}>
+          <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="#e2e8f0" strokeWidth="1" />
+          <text x={padL - 5} y={y + 4} textAnchor="end" fontSize="10" fontFamily="Times New Roman">{Math.round(v)}</text>
+        </g>
+      );
+    }
+    return ticks;
+  };
+
+  const axes = () => (
+    <>
+      <line x1={padL} y1={padT} x2={padL} y2={padT + plotH} stroke="#000" strokeWidth="1.2" />
+      <line x1={padL} y1={padT + plotH} x2={W - padR} y2={padT + plotH} stroke="#000" strokeWidth="1.2" />
+      {yLabel && <text x={12} y={padT + plotH/2} textAnchor="middle" fontSize="10" fontFamily="Times New Roman" transform={`rotate(-90 12 ${padT + plotH/2})`}>{yLabel}</text>}
+      {xLabel && <text x={padL + plotW/2} y={H - 5} textAnchor="middle" fontSize="10" fontFamily="Times New Roman">{xLabel}</text>}
+    </>
+  );
+
+  if (chartType === 'barChart') {
+    const slot = plotW / n;
+    if (multiSeries) {
+      // Gruplu sütunlar: her kategoride series.length kadar sütun yan yana
+      const groupW = slot * 0.7;
+      const barW = groupW / series.length;
+      const seriesColors = series.map((s, si) => s.color || CHART_COLORS[si % CHART_COLORS.length]);
+      return svgWrap(
+        <>
+          {yAxis()}
+          {axes()}
+          {valid.map((r, i) => {
+            const gx = padL + slot * i + (slot - groupW) / 2;
+            return (
+              <g key={i}>
+                {(r.values || []).map((val, si) => {
+                  const v = Number(val) || 0;
+                  const barH = filled ? (plotH * v / maxVal) : 0;
+                  const x = gx + barW * si;
+                  const y = padT + plotH - barH;
+                  return (
+                    <g key={si}>
+                      {filled && <rect x={x} y={y} width={barW * 0.9} height={barH} fill={seriesColors[si]} />}
+                      {filled && <text x={x + barW * 0.45} y={y - 2} textAnchor="middle" fontSize="8" fontFamily="Times New Roman">{v}</text>}
+                    </g>
+                  );
+                })}
+                <text x={gx + groupW/2} y={padT + plotH + 12} textAnchor="middle" fontSize="10" fontFamily="Times New Roman">{r.label}</text>
+              </g>
+            );
+          })}
+          {/* Lejant */}
+          {series.map((s, si) => (
+            <g key={si} transform={`translate(${padL + si * 80}, ${padT - 8})`}>
+              <rect width="9" height="9" fill={seriesColors[si]} />
+              <text x="12" y="8" fontSize="9" fontFamily="Times New Roman">{s.name || `Seri ${si+1}`}</text>
+            </g>
+          ))}
+        </>
+      );
+    }
+    const barW = slot * 0.6;
+    return svgWrap(
+      <>
+        {yAxis()}
+        {axes()}
+        {valid.map((r, i) => {
+          const v = Number(r.value) || 0;
+          const barH = filled ? (plotH * v / maxVal) : 0;
+          const x = padL + slot * i + (slot - barW) / 2;
+          const y = padT + plotH - barH;
+          return (
+            <g key={i}>
+              {filled && <rect x={x} y={y} width={barW} height={barH} fill={r.color || CHART_COLORS[i % CHART_COLORS.length]} />}
+              <text x={x + barW/2} y={padT + plotH + 12} textAnchor="middle" fontSize="10" fontFamily="Times New Roman">{r.label}</text>
+              {filled && <text x={x + barW/2} y={y - 3} textAnchor="middle" fontSize="9" fontFamily="Times New Roman">{v}</text>}
+            </g>
+          );
+        })}
+      </>
+    );
+  }
+
+  if (chartType === 'lineChart') {
+    const slot = plotW / n;
+    const pts = valid.map((r, i) => {
+      const v = Number(r.value) || 0;
+      const x = padL + slot * i + slot / 2;
+      const y = filled ? (padT + plotH - (plotH * v / maxVal)) : (padT + plotH);
+      return { x, y, v, label: r.label };
+    });
+    const pathD = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+    return svgWrap(
+      <>
+        {yAxis()}
+        {axes()}
+        {filled && <path d={pathD} fill="none" stroke={CHART_COLORS[0]} strokeWidth="2" />}
+        {pts.map((p, i) => (
+          <g key={i}>
+            {filled && <circle cx={p.x} cy={p.y} r="3.5" fill={CHART_COLORS[0]} />}
+            <text x={p.x} y={padT + plotH + 12} textAnchor="middle" fontSize="10" fontFamily="Times New Roman">{p.label}</text>
+            {filled && <text x={p.x} y={p.y - 6} textAnchor="middle" fontSize="9" fontFamily="Times New Roman">{p.v}</text>}
+          </g>
+        ))}
+      </>
+    );
+  }
+
+  // Nokta grafiği: dikey istiflenmiş noktalar (her nokta = 1 birim)
+  if (chartType === 'dotChart') {
+    const slot = plotW / n;
+    const dotR = 6;          // nokta yarıçapı
+    const dotGap = 16;       // noktalar arası dikey mesafe
+    // En yüksek istif kaç nokta? Ona göre SVG yüksekliği (güvenlik sınırı: 60)
+    const DOT_CAP = 60;
+    const rawMax = filled ? Math.max(1, ...valid.map(r => Number(r.value) || 0)) : 1;
+    const maxDots = Math.min(DOT_CAP, rawMax);
+    const neededTop = 20;    // üst boşluk
+    const labelArea = 30;    // alt etiket alanı
+    const dynH = Math.max(H, neededTop + maxDots * dotGap + labelArea + (title ? 20 : 0));
+    const baseY = dynH - labelArea;
+    return (
+      <svg viewBox={`0 0 ${W} ${dynH}`} preserveAspectRatio="xMidYMid meet" style={{ width: '100%', maxWidth: `${W}px`, height: 'auto' }} className="block mx-auto">
+        {title && <text x={W/2} y={18} textAnchor="middle" fontSize="14" fontWeight="bold" fontFamily="Times New Roman">{title}</text>}
+        {/* x ekseni (taban çizgisi), oklu */}
+        <line x1={padL - 5} y1={baseY} x2={W - padR} y2={baseY} stroke="#000" strokeWidth="1.5" />
+        <polygon points={`${W - padR + 5},${baseY} ${W - padR - 3},${baseY - 4} ${W - padR - 3},${baseY + 4}`} fill="#000" />
+        {xLabel && <text x={padL + plotW/2} y={dynH - 4} textAnchor="middle" fontSize="10" fontFamily="Times New Roman">{xLabel}</text>}
+        {valid.map((r, i) => {
+          const v = Number(r.value) || 0;
+          const cx = padL + slot * i + slot / 2;
+          const color = r.color || CHART_COLORS[i % CHART_COLORS.length];
+          const dots = [];
+          if (filled) {
+            const cnt = Math.min(60, Math.max(0, Math.floor(v)));
+            for (let k = 0; k < cnt; k++) {
+              const cy = baseY - dotGap * (k + 0.7);
+              dots.push(<circle key={k} cx={cx} cy={cy} r={dotR} fill={color} />);
             }
-        </script>
-    </body>
+          }
+          return (
+            <g key={i}>
+              {dots}
+              <text x={cx} y={baseY + 14} textAnchor="middle" fontSize="10" fontFamily="Times New Roman">{r.label}</text>
+            </g>
+          );
+        })}
+      </svg>
+    );
+  }
+
+  if (chartType === 'pieChart') {
+    const cx = W / 2, cy = padT + plotH / 2 + 5, rad = Math.min(plotW, plotH) / 2 - 5;
+    let angle = -Math.PI / 2; // tepeden başla
+    const slices = filled && total > 0 ? valid.map((r, i) => {
+      const v = Number(r.value) || 0;
+      const frac = v / total;
+      const a0 = angle;
+      const a1 = angle + frac * 2 * Math.PI;
+      angle = a1;
+      const x0 = cx + rad * Math.cos(a0), y0 = cy + rad * Math.sin(a0);
+      const x1 = cx + rad * Math.cos(a1), y1 = cy + rad * Math.sin(a1);
+      const large = (a1 - a0) > Math.PI ? 1 : 0;
+      const d = `M ${cx} ${cy} L ${x0} ${y0} A ${rad} ${rad} 0 ${large} 1 ${x1} ${y1} Z`;
+      const mid = (a0 + a1) / 2;
+      const lx = cx + (rad * 0.6) * Math.cos(mid), ly = cy + (rad * 0.6) * Math.sin(mid);
+      return { d, color: r.color || CHART_COLORS[i % CHART_COLORS.length], label: r.label, pct: Math.round(frac * 100), lx, ly };
+    }) : [];
+    return svgWrap(
+      <>
+        {filled ? (
+          <>
+            {slices.map((s, i) => <path key={i} d={s.d} fill={s.color} stroke="#fff" strokeWidth="1" />)}
+            {slices.map((s, i) => s.pct >= 6 && <text key={`t${i}`} x={s.lx} y={s.ly} textAnchor="middle" fontSize="9" fill="#fff" fontWeight="bold" fontFamily="Times New Roman">%{s.pct}</text>)}
+          </>
+        ) : (
+          <circle cx={cx} cy={cy} r={rad} fill="none" stroke="#000" strokeWidth="1.2" />
+        )}
+        {/* Lejant */}
+        {valid.map((r, i) => (
+          <g key={`l${i}`} transform={`translate(${W - padR - 70}, ${padT + i * 14})`}>
+            <rect width="10" height="10" fill={r.color || CHART_COLORS[i % CHART_COLORS.length]} />
+            <text x="14" y="9" fontSize="9" fontFamily="Times New Roman">{r.label}</text>
+          </g>
+        ))}
+      </>
+    );
+  }
+
+  return null;
+};
+
+const ChartDisplay = React.memo(ChartDisplayImpl);
+
+// ============== RESIM KIRPMA ==============
+
+// ============== PDF SAYFA SEÇİCİ ==============
+
+const PdfPagePicker = ({ file, onPageSelected, onClose }) => {
+  const [pages, setPages] = useState([]); // [{ pageNum, dataUrl }]
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [progress, setProgress] = useState({ done: 0, total: 0 });
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      try {
+        setLoading(true);
+        const pdfjsLib = await loadPdfJs();
+        const arrayBuffer = await file.arrayBuffer();
+        if (cancelled) return;
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        if (cancelled) return;
+        setProgress({ done: 0, total: pdf.numPages });
+
+        const out = [];
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          if (cancelled) return;
+          const page = await pdf.getPage(pageNum);
+          // Yüksek kalite için 2x ölçek
+          const viewport = page.getViewport({ scale: 2 });
+          const canvas = document.createElement('canvas');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          const ctx = canvas.getContext('2d');
+          await page.render({ canvasContext: ctx, viewport }).promise;
+          if (cancelled) return;
+          out.push({ pageNum, dataUrl: canvas.toDataURL('image/png') });
+          setProgress({ done: pageNum, total: pdf.numPages });
+          // Çok sayfalı PDF'lerde UI thread'i bloke etmemek için kısa break
+          await new Promise(r => setTimeout(r, 0));
+        }
+        if (!cancelled) {
+          setPages(out);
+          setLoading(false);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setError(e.message || 'PDF okunamadı.');
+          setLoading(false);
+        }
+      }
+    };
+    run();
+    return () => { cancelled = true; };
+  }, [file]);
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full p-4 sm:p-6 my-2 sm:my-4">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold text-slate-800">PDF Sayfası Seç</h3>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-700 text-2xl">×</button>
+        </div>
+
+        {loading && (
+          <div className="text-center py-8">
+            <div className="text-sm text-slate-600 mb-2">
+              PDF okunuyor... {progress.total > 0 && `(${progress.done} / ${progress.total} sayfa)`}
+            </div>
+            {progress.total > 0 && (
+              <div className="w-full bg-slate-200 rounded-full h-2 max-w-xs mx-auto">
+                <div className="bg-slate-700 h-2 rounded-full transition-all" style={{ width: `${(progress.done / progress.total) * 100}%` }} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {error && (
+          <div className="text-red-600 text-sm py-4 text-center">
+            Hata: {error}
+          </div>
+        )}
+
+        {!loading && !error && pages.length > 0 && (
+          <>
+            <div className="text-xs text-slate-600 mb-3">
+              Kırpmak istediğin sayfaya tıkla:
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto">
+              {pages.map(p => (
+                <button
+                  key={p.pageNum}
+                  onClick={() => { onPageSelected(p.dataUrl); onClose(); }}
+                  className="border-2 border-slate-200 rounded hover:border-blue-500 hover:shadow-lg transition-all p-2 bg-white"
+                >
+                  <img src={p.dataUrl} alt={`Sayfa ${p.pageNum}`} className="w-full h-auto block" />
+                  <div className="text-xs text-slate-600 mt-1 text-center">Sayfa {p.pageNum}</div>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        <div className="flex justify-end gap-2 mt-4">
+          <button onClick={onClose} className="px-4 py-2 border border-slate-300 rounded hover:bg-slate-100">İptal</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ImageCropper = ({ src, onCrop, onClose }) => {
+  const [crop, setCrop] = useState({ x: 50, y: 50, w: 200, h: 150 });
+  const [dragging, setDragging] = useState(null);
+  const imgRef = useRef(null);
+  const containerRef = useRef(null);
+
+  // Mouse veya touch event'inden koordinat al
+  const getCoords = (e) => {
+    if (e.touches && e.touches[0]) {
+      return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+    return { x: e.clientX, y: e.clientY };
+  };
+
+  const handleMouseDown = (mode, e) => {
+    e.preventDefault();
+    const { x, y } = getCoords(e);
+    setDragging({ mode, startX: x, startY: y, startCrop: { ...crop } });
+  };
+
+  useEffect(() => {
+    const handleMove = (e) => {
+      if (!dragging) return;
+      // Touch'ta sayfa kaymasını engelle
+      if (e.touches) e.preventDefault();
+      const { x, y } = getCoords(e);
+      const dx = x - dragging.startX;
+      const dy = y - dragging.startY;
+      const c = { ...dragging.startCrop };
+      if (dragging.mode === 'move') {
+        c.x += dx; c.y += dy;
+      } else if (dragging.mode === 'br') {
+        c.w += dx; c.h += dy;
+      } else if (dragging.mode === 'tl') {
+        c.x += dx; c.y += dy; c.w -= dx; c.h -= dy;
+      } else if (dragging.mode === 'tr') {
+        c.y += dy; c.w += dx; c.h -= dy;
+      } else if (dragging.mode === 'bl') {
+        c.x += dx; c.w -= dx; c.h += dy;
+      }
+      if (c.w < 20) c.w = 20;
+      if (c.h < 20) c.h = 20;
+      setCrop(c);
+    };
+    const handleUp = () => setDragging(null);
+    if (dragging) {
+      window.addEventListener('mousemove', handleMove);
+      window.addEventListener('mouseup', handleUp);
+      window.addEventListener('touchmove', handleMove, { passive: false });
+      window.addEventListener('touchend', handleUp);
+      window.addEventListener('touchcancel', handleUp);
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleUp);
+      window.removeEventListener('touchmove', handleMove);
+      window.removeEventListener('touchend', handleUp);
+      window.removeEventListener('touchcancel', handleUp);
+    };
+  }, [dragging]);
+
+  const performCrop = () => {
+    const img = imgRef.current;
+    if (!img) return;
+    const scaleX = img.naturalWidth / img.clientWidth;
+    const scaleY = img.naturalHeight / img.clientHeight;
+    const canvas = document.createElement('canvas');
+    canvas.width = crop.w * scaleX;
+    canvas.height = crop.h * scaleY;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, crop.x * scaleX, crop.y * scaleY, crop.w * scaleX, crop.h * scaleY, 0, 0, canvas.width, canvas.height);
+    onCrop(canvas.toDataURL('image/png'));
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 z-50 flex items-start justify-center p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full p-4 sm:p-6 my-2 sm:my-4">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold text-slate-800">Görseli Kırp</h3>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-700 text-2xl">×</button>
+        </div>
+        <div className="text-xs text-slate-600 mb-2">Kırpma alanını sürükleyerek taşıyın, köşelerden boyutlandırın.</div>
+        <div ref={containerRef} className="relative inline-block max-w-full overflow-hidden border border-slate-300" style={{ userSelect: 'none', touchAction: 'none' }}>
+          <img ref={imgRef} src={src} alt="kırpılacak" className="max-w-full max-h-[60vh] block" draggable={false} />
+          <div
+            className="absolute border-2 border-blue-500 bg-blue-500/10 cursor-move"
+            style={{ left: crop.x, top: crop.y, width: crop.w, height: crop.h, touchAction: 'none' }}
+            onMouseDown={(e) => handleMouseDown('move', e)}
+            onTouchStart={(e) => handleMouseDown('move', e)}
+          >
+            <div
+              className="absolute w-4 h-4 bg-blue-500 -left-2 -top-2 cursor-nwse-resize"
+              style={{ touchAction: 'none' }}
+              onMouseDown={(e) => { e.stopPropagation(); handleMouseDown('tl', e); }}
+              onTouchStart={(e) => { e.stopPropagation(); handleMouseDown('tl', e); }}
+            />
+            <div
+              className="absolute w-4 h-4 bg-blue-500 -right-2 -top-2 cursor-nesw-resize"
+              style={{ touchAction: 'none' }}
+              onMouseDown={(e) => { e.stopPropagation(); handleMouseDown('tr', e); }}
+              onTouchStart={(e) => { e.stopPropagation(); handleMouseDown('tr', e); }}
+            />
+            <div
+              className="absolute w-4 h-4 bg-blue-500 -left-2 -bottom-2 cursor-nesw-resize"
+              style={{ touchAction: 'none' }}
+              onMouseDown={(e) => { e.stopPropagation(); handleMouseDown('bl', e); }}
+              onTouchStart={(e) => { e.stopPropagation(); handleMouseDown('bl', e); }}
+            />
+            <div
+              className="absolute w-4 h-4 bg-blue-500 -right-2 -bottom-2 cursor-nwse-resize"
+              style={{ touchAction: 'none' }}
+              onMouseDown={(e) => { e.stopPropagation(); handleMouseDown('br', e); }}
+              onTouchStart={(e) => { e.stopPropagation(); handleMouseDown('br', e); }}
+            />
+          </div>
+        </div>
+        <div className="flex justify-end gap-2 mt-4">
+          <button onClick={onClose} className="px-4 py-2 border border-slate-300 rounded hover:bg-slate-100">İptal</button>
+          <button onClick={performCrop} className="px-4 py-2 bg-slate-800 text-white rounded hover:bg-slate-900">Kırp ve Ekle</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============== ŞEKİL YERLEŞİM SEÇİCİSİ ==============
+// Tablo/grafik veri editörü
+const CHART_TYPE_LABELS = {
+  frequencyTable: 'Sıklık Tablosu',
+  tallyTable: 'Çetele Tablosu',
+  barChart: 'Sütun Grafiği',
+  pieChart: 'Daire Grafiği',
+  lineChart: 'Çizgi Grafiği',
+  dotChart: 'Nokta Grafiği'
+};
+
+const ChartEditor = ({ chartType, onSave, onClose, initial }) => {
+  const [title, setTitle] = useState(initial?.title ?? '');
+  const [xLabel, setXLabel] = useState(initial?.xLabel ?? '');
+  const [yLabel, setYLabel] = useState(initial?.yLabel ?? '');
+  const [filled, setFilled] = useState(initial?.filled ?? true);
+  const [rows, setRows] = useState(initial?.rows ?? [
+    { label: 'A', value: 3, color: CHART_COLORS[0], values: [3, 2] },
+    { label: 'B', value: 5, color: CHART_COLORS[1], values: [5, 4] },
+    { label: 'C', value: 2, color: CHART_COLORS[2], values: [2, 6] }
+  ]);
+  // Çoklu seri (sadece sütun grafiğinde): seri listesi [{name, color}]
+  const [series, setSeries] = useState(initial?.series ?? null);
+
+  const type = initial?.chartType || chartType;
+  const isTable = type === 'frequencyTable' || type === 'tallyTable';
+  const isPie = type === 'pieChart';
+  const usesColor = type === 'barChart' || type === 'pieChart' || type === 'dotChart';
+  const canMultiSeries = type === 'barChart';
+  const multiOn = canMultiSeries && Array.isArray(series) && series.length > 0;
+
+  const addRow = () => setRows([...rows, {
+    label: '', value: 0, color: CHART_COLORS[rows.length % CHART_COLORS.length],
+    values: multiOn ? series.map(() => 0) : [0]
+  }]);
+  const updateRow = (i, patch) => setRows(rows.map((r, j) => j === i ? { ...r, ...patch } : r));
+  const removeRow = (i) => setRows(rows.filter((_, j) => j !== i));
+
+  // Çoklu seri aç/kapa
+  const toggleMultiSeries = (on) => {
+    if (on) {
+      setSeries([{ name: 'Seri 1', color: CHART_COLORS[0] }, { name: 'Seri 2', color: CHART_COLORS[1] }]);
+      // Her satıra values dizisi garantile
+      setRows(rows.map(r => ({ ...r, values: r.values && r.values.length >= 2 ? r.values : [Number(r.value) || 0, 0] })));
+    } else {
+      setSeries(null);
+    }
+  };
+  const addSeries = () => {
+    const ns = [...series, { name: `Seri ${series.length + 1}`, color: CHART_COLORS[series.length % CHART_COLORS.length] }];
+    setSeries(ns);
+    setRows(rows.map(r => ({ ...r, values: [...(r.values || []), 0] })));
+  };
+  const removeSeries = (si) => {
+    if (series.length <= 1) return;
+    setSeries(series.filter((_, j) => j !== si));
+    setRows(rows.map(r => ({ ...r, values: (r.values || []).filter((_, j) => j !== si) })));
+  };
+  const updateSeries = (si, patch) => setSeries(series.map((s, j) => j === si ? { ...s, ...patch } : s));
+  const updateRowValue = (i, si, val) => {
+    setRows(rows.map((r, j) => {
+      if (j !== i) return r;
+      const vals = [...(r.values || [])];
+      vals[si] = val === '' ? '' : Number(val);
+      return { ...r, values: vals };
+    }));
+  };
+
+  const handleSave = () => {
+    onSave({ chartType: type, title, xLabel, yLabel, filled, rows, series: multiOn ? series : null });
+    onClose();
+  };
+
+  const previewData = { chartType: type, title, xLabel, yLabel, filled, rows, series: multiOn ? series : null };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full p-4 sm:p-6 my-2 sm:my-4">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold text-slate-800">{CHART_TYPE_LABELS[type]} Oluştur</h3>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-700 text-2xl">×</button>
+        </div>
+
+        {/* Dolu / Boş */}
+        <div className="mb-3 p-2 bg-slate-50 border border-slate-200 rounded">
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={filled} onChange={(e) => setFilled(e.target.checked)} />
+            <span><b>Dolu göster</b> — kapatırsanız boş şablon olur (öğrenci doldurur)</span>
+          </label>
+        </div>
+
+        {/* Başlık ve eksen adları */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
+          <div>
+            <label className="text-xs text-slate-600">Başlık (opsiyonel)</label>
+            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}
+              className="w-full border border-slate-300 rounded px-2 py-1 text-sm" placeholder="örn: Sınıf Mevcudu" />
+          </div>
+          {!isPie && (
+            <>
+              <div>
+                <label className="text-xs text-slate-600">{isTable ? 'Sol sütun başlığı' : 'X ekseni adı'}</label>
+                <input type="text" value={xLabel} onChange={(e) => setXLabel(e.target.value)}
+                  className="w-full border border-slate-300 rounded px-2 py-1 text-sm" placeholder={isTable ? 'Kategori' : 'örn: Meyve'} />
+              </div>
+              <div>
+                <label className="text-xs text-slate-600">{isTable ? 'Sağ sütun başlığı' : 'Y ekseni adı'}</label>
+                <input type="text" value={yLabel} onChange={(e) => setYLabel(e.target.value)}
+                  className="w-full border border-slate-300 rounded px-2 py-1 text-sm" placeholder={isTable ? 'Sıklık' : 'örn: Adet'} />
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Çoklu seri seçeneği (sadece sütun grafiği) */}
+        {canMultiSeries && (
+          <div className="mb-3 p-2 bg-slate-50 border border-slate-200 rounded">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={multiOn} onChange={(e) => toggleMultiSeries(e.target.checked)} />
+              <span><b>Çoklu sütun</b> — her kategoride birden fazla sütun (örn. Kızlar / Erkekler)</span>
+            </label>
+            {multiOn && (
+              <div className="mt-2 space-y-1">
+                {series.map((s, si) => (
+                  <div key={si} className="flex items-center gap-2">
+                    <input type="text" value={s.name} onChange={(e) => updateSeries(si, { name: e.target.value })}
+                      className="flex-1 border border-slate-300 rounded px-2 py-0.5 text-sm" placeholder={`Seri ${si+1} adı`} />
+                    <input type="color" value={s.color} onChange={(e) => updateSeries(si, { color: e.target.value })}
+                      className="w-8 h-7 border border-slate-300 rounded cursor-pointer" />
+                    <button onClick={() => removeSeries(si)} disabled={series.length <= 1}
+                      className="text-red-500 hover:text-red-700 disabled:opacity-30 p-1">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+                <button onClick={addSeries} className="text-xs px-2 py-1 border border-slate-300 rounded hover:bg-slate-100 flex items-center gap-1">
+                  <Plus className="w-3 h-3" /> Seri ekle
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Veri satırları */}
+        <div className="border border-slate-200 rounded p-2 mb-3">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-semibold">Veriler</span>
+            <button onClick={addRow} className="text-xs px-2 py-1 bg-slate-700 text-white rounded hover:bg-slate-800 flex items-center gap-1">
+              <Plus className="w-3 h-3" /> Satır ekle
+            </button>
+          </div>
+          {/* Çoklu seri başlıkları */}
+          {multiOn && (
+            <div className="flex items-center gap-2 mb-1 text-xs text-slate-500 font-semibold">
+              <span className="flex-1">Kategori</span>
+              {series.map((s, si) => <span key={si} className="w-16 text-center">{s.name || `S${si+1}`}</span>)}
+              <span className="w-7"></span>
+            </div>
+          )}
+          {rows.map((r, i) => (
+            <div key={i} className="flex items-center gap-2 mb-1">
+              <input type="text" value={r.label} onChange={(e) => updateRow(i, { label: e.target.value })}
+                className="flex-1 min-w-0 border border-slate-300 rounded px-2 py-0.5 text-sm" placeholder="Etiket (örn: Elma)" />
+              {multiOn ? (
+                series.map((s, si) => (
+                  <input key={si} type="number" value={(r.values || [])[si] ?? 0}
+                    onChange={(e) => updateRowValue(i, si, e.target.value)}
+                    className="w-16 border border-slate-300 rounded px-2 py-0.5 text-sm" />
+                ))
+              ) : (
+                <>
+                  <input type="number" value={r.value} onChange={(e) => updateRow(i, { value: e.target.value === '' ? '' : Number(e.target.value) })}
+                    className="w-20 border border-slate-300 rounded px-2 py-0.5 text-sm" placeholder="Değer" />
+                  {usesColor && (
+                    <input type="color" value={r.color || CHART_COLORS[i % CHART_COLORS.length]} onChange={(e) => updateRow(i, { color: e.target.value })}
+                      className="w-8 h-7 border border-slate-300 rounded cursor-pointer" title="Renk" />
+                  )}
+                </>
+              )}
+              <button onClick={() => removeRow(i)} className="text-red-500 hover:text-red-700 p-1">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Önizleme */}
+        <div className="border-2 border-slate-200 rounded p-3 mb-4 bg-white">
+          <div className="text-xs text-slate-500 mb-2">Önizleme:</div>
+          <ChartDisplay data={previewData} />
+        </div>
+
+        <div className="flex justify-end gap-2">
+          <button onClick={onClose} className="px-4 py-2 border border-slate-300 rounded hover:bg-slate-100">İptal</button>
+          <button onClick={handleSave} className="px-4 py-2 bg-slate-800 text-white rounded hover:bg-slate-900">Soruya Ekle</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Yeni eklenen sayı doğrusu / görselin önceki şekle göre konumunu sorar
+
+const ShapeLayoutPicker = ({ onPick, onCancel }) => {
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-5">
+        <h3 className="text-lg font-bold text-slate-800 mb-3">Nereye yerleştirilsin?</h3>
+        <p className="text-sm text-slate-600 mb-4">Yeni eklenen şekil bir önceki şeklin altına mı yanına mı gelsin?</p>
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <button
+            onClick={() => onPick('below')}
+            className="border-2 border-slate-300 rounded-lg p-4 hover:border-blue-500 hover:bg-blue-50 text-center"
+          >
+            <div className="text-2xl mb-1">⬇</div>
+            <div className="font-semibold text-sm">Alta</div>
+            <div className="text-xs text-slate-500 mt-1">Yeni satır</div>
+          </button>
+          <button
+            onClick={() => onPick('side')}
+            className="border-2 border-slate-300 rounded-lg p-4 hover:border-blue-500 hover:bg-blue-50 text-center"
+          >
+            <div className="text-2xl mb-1">➡</div>
+            <div className="font-semibold text-sm">Yana</div>
+            <div className="text-xs text-slate-500 mt-1">Aynı satırda</div>
+          </button>
+        </div>
+        <div className="flex justify-end">
+          <button onClick={onCancel} className="px-4 py-2 border border-slate-300 rounded hover:bg-slate-100 text-sm">İptal</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============== SORU BILEŞENI ==============
+
+const QuestionEditorImpl = ({ question, onChange, onDelete, onMoveUp, onMoveDown, canMoveUp, canMoveDown, index, totalQuestions, dragHandlers, isDragging, isDragOver }) => {
+  const [showLatex, setShowLatex] = useState(false);
+  const [showNumberLine, setShowNumberLine] = useState(false);
+  const [editingShapeId, setEditingShapeId] = useState(null); // Düzenlenen sayı doğrusunun id'si (yoksa yeni şekil)
+  const [cropSrc, setCropSrc] = useState(null);
+  const [pdfFile, setPdfFile] = useState(null);
+  const [pendingShape, setPendingShape] = useState(null); // Yerleşimi sorulan şekil { type, data }
+  const [chartEditor, setChartEditor] = useState(null); // { chartType } yeni; veya { editingId, chartType } düzenleme
+  // Sayı doğrusu / görsel / latex hangi hedefe ekleniyor? null = soru gövdesi, {itemId} = o madde
+  const [shapeTarget, setShapeTarget] = useState(null);
+
+  const update = (patch) => onChange({ ...question, ...patch });
+
+  // Geriye dönük uyum: eski 'images' ve 'numberLine' alanlarını shapes'e çevir
+  const shapes = useMemo(() => {
+    if (question.shapes && question.shapes.length > 0) return question.shapes;
+    // Migration: eski formattan yeni formata
+    const out = [];
+    if (question.numberLine) {
+      out.push({ id: uniqueId(), type: 'numberLine', data: question.numberLine, layout: 'below' });
+    }
+    if (question.images && question.images.length > 0) {
+      question.images.forEach(img => {
+        out.push({ id: uniqueId(), type: 'image', data: img, layout: 'below' });
+      });
+    }
+    return out;
+  }, [question.shapes, question.numberLine, question.images]);
+
+  // Şekilleri güncelleyen helper (eski alanları da temizler)
+  const updateShapes = (newShapes) => {
+    onChange({ ...question, shapes: newShapes, numberLine: undefined, images: undefined });
+  };
+
+  // Yeni şekli yerleştirme akışı tetikle
+  const requestAddShape = (shape) => {
+    // İlk şekilse direk ekle, sonraki şekilse layout sor
+    if (shapes.length === 0) {
+      updateShapes([{ ...shape, id: uniqueId(), layout: 'below' }]);
+    } else {
+      setPendingShape(shape);
+    }
+  };
+
+  const confirmAddShape = (layout) => {
+    if (!pendingShape) return;
+    updateShapes([...shapes, { ...pendingShape, id: uniqueId(), layout }]);
+    setPendingShape(null);
+  };
+
+  const deleteShape = (shapeId) => {
+    updateShapes(shapes.filter(s => s.id !== shapeId));
+  };
+
+  const moveShape = (shapeId, direction) => {
+    const idx = shapes.findIndex(s => s.id === shapeId);
+    if (idx === -1) return;
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= shapes.length) return;
+    const newShapes = [...shapes];
+    [newShapes[idx], newShapes[newIdx]] = [newShapes[newIdx], newShapes[idx]];
+    updateShapes(newShapes);
+  };
+
+  const updateShapeLayout = (shapeId, layout) => {
+    updateShapes(shapes.map(s => s.id === shapeId ? { ...s, layout } : s));
+  };
+
+  const updateShapeData = (shapeId, data) => {
+    updateShapes(shapes.map(s => s.id === shapeId ? { ...s, data } : s));
+  };
+
+  const handleImageUpload = (e, itemId = null) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    e.target.value = '';
+    // Hedefi ayarla (sayı doğrusu/görsel sonuçları buraya gidecek)
+    setShapeTarget(itemId ? { itemId } : null);
+
+    if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+      setPdfFile(file);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => setCropSrc(ev.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const insertLatex = (latex) => {
+    if (shapeTarget?.itemId) {
+      // Maddenin metnine ekle
+      const it = (question.items || []).find(x => x.id === shapeTarget.itemId);
+      if (it) {
+        update({ items: (question.items || []).map(x => x.id === shapeTarget.itemId ? { ...x, text: (x.text || '') + ' ' + latex } : x) });
+      }
+    } else {
+      update({ text: (question.text || '') + ' ' + latex });
+    }
+  };
+
+  // Bir şekli (sayı doğrusu/görsel) hedef maddeye ekle
+  const addShapeToItem = (itemId, shape) => {
+    const it = (question.items || []).find(x => x.id === itemId);
+    if (!it) return;
+    const itShapes = it.shapes || [];
+    update({ items: (question.items || []).map(x => x.id === itemId ? { ...x, shapes: [...itShapes, { ...shape, id: uniqueId(), layout: 'below' }] } : x) });
+  };
+
+  const setOptionCount = (count) => {
+    const current = question.options || [];
+    const newOpts = [];
+    for (let i = 0; i < count; i++) {
+      newOpts.push(current[i] !== undefined ? normOption(current[i]) : { text: '', shapes: [] });
+    }
+    update({ options: newOpts });
+  };
+
+  // Alt madde yönetimi
+  const items = question.items || [];
+  const addItem = () => {
+    // Otomatik etiket önerisi: a) b) c) ...
+    const nextLetter = String.fromCharCode(97 + items.length); // a, b, c...
+    update({
+      items: [...items, {
+        id: uniqueId(),
+        label: `${nextLetter})`,
+        text: '',
+        points: '',
+        hasPoints: false,
+        hasAnswer: true,
+        answerHeight: 25,
+        background: 'none'
+      }]
+    });
+  };
+  const updateItem = (id, patch) => {
+    update({ items: items.map(it => it.id === id ? { ...it, ...patch } : it) });
+  };
+  const deleteItem = (id) => {
+    update({ items: items.filter(it => it.id !== id) });
+  };
+  const moveItem = (idx, dir) => {
+    const to = idx + dir;
+    if (to < 0 || to >= items.length) return;
+    const arr = [...items];
+    const [m] = arr.splice(idx, 1);
+    arr.splice(to, 0, m);
+    update({ items: arr });
+  };
+
+  return (
+    <div
+      className={`border-2 rounded-lg p-4 bg-white mb-3 print:hidden transition-all ${
+        isDragOver ? 'border-blue-500 border-dashed bg-blue-50' : 'border-slate-200'
+      } ${isDragging ? 'opacity-40' : ''}`}
+      {...(dragHandlers?.dropZone || {})}
+    >
+      <div className="flex justify-between items-center mb-3">
+        <div className="flex items-center gap-2">
+          {/* Sürükleme tutamacı */}
+          <div
+            {...(dragHandlers?.dragHandle || {})}
+            className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-700 p-1 -ml-1 touch-none"
+            title="Sürükleyerek taşı"
+          >
+            <GripVertical className="w-5 h-5" />
+          </div>
+          <span className="bg-slate-800 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold">{index + 1}</span>
+          <span className="text-sm text-slate-600">Soru</span>
+        </div>
+        <div className="flex items-center gap-1">
+          {/* Ok butonları (sürükleme olmazsa diye) */}
+          <button
+            onClick={onMoveUp}
+            disabled={!canMoveUp}
+            className="p-1 text-slate-400 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
+            title="Yukarı taşı"
+          >
+            <ChevronUp className="w-5 h-5" />
+          </button>
+          <button
+            onClick={onMoveDown}
+            disabled={!canMoveDown}
+            className="p-1 text-slate-400 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
+            title="Aşağı taşı"
+          >
+            <ChevronDown className="w-5 h-5" />
+          </button>
+          <button onClick={onDelete} className="text-red-500 hover:text-red-700 p-1">
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Üst kontroller: puan, kazanım, tip, layout */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+        <div>
+          <div className="h-5 flex items-center justify-between">
+            <span className="text-xs text-slate-600">Puan</span>
+            <label className="flex items-center gap-1 cursor-pointer" title="Yazılı kağıdında puanı göster/gizle">
+              <input
+                type="checkbox"
+                checked={question.showPoints !== false}
+                onChange={(e) => update({ showPoints: e.target.checked })}
+              />
+              <span className="text-xs text-slate-500">göster</span>
+            </label>
+          </div>
+          <NumericInput value={question.points} onChange={(v) => update({ points: v })} integer
+            disabled={question.showPoints === false}
+            className={`w-full border border-slate-300 rounded px-2 py-1 ${question.showPoints === false ? 'bg-slate-100 text-slate-400' : ''}`} />
+        </div>
+        <div>
+          <div className="h-5 flex items-center"><span className="text-xs text-slate-600">Soru tipi</span></div>
+          <select value={question.type} onChange={(e) => update({ type: e.target.value })}
+            className="w-full border border-slate-300 rounded px-2 py-1">
+            <option value="open">Açık uçlu</option>
+            <option value="multiple">Çoktan seçmeli</option>
+            <option value="fill">Boşluk doldurma</option>
+            <option value="tf">Doğru/Yanlış</option>
+          </select>
+        </div>
+        <div>
+          <div className="h-5 flex items-center"><span className="text-xs text-slate-600">Zemin</span></div>
+          <select value={question.background || 'none'} onChange={(e) => update({ background: e.target.value })}
+            className="w-full border border-slate-300 rounded px-2 py-1">
+            <option value="none">Düz (boş)</option>
+            <option value="grid">Kareli</option>
+            <option value="dotted">Noktalı</option>
+            <option value="lined">Çizgili</option>
+          </select>
+        </div>
+        <div>
+          <div className="h-5 flex items-center"><span className="text-xs text-slate-600">Çözüm alanı yüksekliği</span></div>
+          <div className="relative">
+            <NumericInput value={question.answerHeight ?? 40} onChange={(v) => update({ answerHeight: v })} integer
+              className="w-full border border-slate-300 rounded px-2 py-1 pr-9" />
+            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none select-none">mm</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Kazanım */}
+      <div className="mb-3">
+        <label className="text-xs text-slate-600 flex items-center gap-2">
+          <input type="checkbox" checked={!!question.showLearning} onChange={(e) => update({ showLearning: e.target.checked })} />
+          Kazanım göster
+        </label>
+        {question.showLearning && (
+          <input type="text" value={question.learning || ''} onChange={(e) => update({ learning: e.target.value })}
+            placeholder="Kazanım yazın..." className="w-full border border-slate-300 rounded px-2 py-1 mt-1 text-sm" />
+        )}
+      </div>
+
+      {/* Sonraki soruya bağlantı */}
+      {index < totalQuestions - 1 && (
+        <div className="grid grid-cols-2 gap-2 mb-3 p-2 bg-slate-50 border border-slate-200 rounded">
+          <div>
+            <label className="text-xs text-slate-600">Bir sonraki soru ile düzen</label>
+            <select value={question.nextLayout || 'below'} onChange={(e) => update({ nextLayout: e.target.value })}
+              className="w-full border border-slate-300 rounded px-2 py-1">
+              <option value="below">Alt alta</option>
+              <option value="side">Yan yana</option>
+            </select>
+          </div>
+          {question.nextLayout !== 'side' && (
+            <div>
+              <label className="text-xs text-slate-600">Sonraki soru ile aradaki boşluk</label>
+              <div className="relative">
+                <NumericInput value={question.gapMm ?? 5} onChange={(v) => update({ gapMm: v })} integer
+                  className="w-full border border-slate-300 rounded px-2 py-1 pr-9" />
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none select-none">mm</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Soru metni - font kontrolleri */}
+      <div className="mb-2">
+        <label className="text-xs text-slate-600">Soru metni - yazı stili</label>
+        <TextStyleControls style={question.textStyle} onChange={(s) => update({ textStyle: s })} compact />
+      </div>
+
+      {/* Soru metni */}
+      <textarea
+        value={question.text || ''}
+        onChange={(e) => update({ text: e.target.value })}
+        placeholder="Soruyu yazın... ($..$ arasına LaTeX yazabilirsiniz)"
+        className="w-full border border-slate-300 rounded p-2 min-h-[80px] mb-2"
+        style={styleToCSS(question.textStyle)}
+      />
+
+      {/* Ek araçlar */}
+      <div className="grid grid-cols-2 gap-2 mb-3">
+        <label className="text-xs px-3 py-1.5 border border-slate-300 rounded hover:bg-slate-100 flex items-center gap-1.5 cursor-pointer">
+          <ImageIcon className="w-3.5 h-3.5 shrink-0" /> Görsel / PDF ekle
+          <input
+            type="file"
+            accept="image/*,application/pdf"
+            onChange={handleImageUpload}
+            style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
+          />
+        </label>
+        <button onClick={() => setShowLatex(true)} className="text-xs px-3 py-1.5 border border-slate-300 rounded hover:bg-slate-100 flex items-center gap-1.5">
+          <Sigma className="w-3.5 h-3.5 shrink-0" /> LaTeX
+        </button>
+        <button onClick={() => setShowNumberLine(true)} className="text-xs px-3 py-1.5 border border-slate-300 rounded hover:bg-slate-100 flex items-center gap-1.5">
+          <Minus className="w-3.5 h-3.5 shrink-0" /> Sayı doğrusu
+        </button>
+        <button onClick={() => setChartEditor({ chartType: 'frequencyTable' })} className="text-xs px-3 py-1.5 border border-slate-300 rounded hover:bg-slate-100 flex items-center gap-1.5">
+          📋 Sıklık Tablosu
+        </button>
+        <button onClick={() => setChartEditor({ chartType: 'tallyTable' })} className="text-xs px-3 py-1.5 border border-slate-300 rounded hover:bg-slate-100 flex items-center gap-1.5">
+          ✏️ Çetele Tablosu
+        </button>
+        <button onClick={() => setChartEditor({ chartType: 'barChart' })} className="text-xs px-3 py-1.5 border border-slate-300 rounded hover:bg-slate-100 flex items-center gap-1.5">
+          📊 Sütun Grafiği
+        </button>
+        <button onClick={() => setChartEditor({ chartType: 'pieChart' })} className="text-xs px-3 py-1.5 border border-slate-300 rounded hover:bg-slate-100 flex items-center gap-1.5">
+          🥧 Daire Grafiği
+        </button>
+        <button onClick={() => setChartEditor({ chartType: 'lineChart' })} className="text-xs px-3 py-1.5 border border-slate-300 rounded hover:bg-slate-100 flex items-center gap-1.5">
+          📈 Çizgi Grafiği
+        </button>
+        <button onClick={() => setChartEditor({ chartType: 'dotChart' })} className="text-xs px-3 py-1.5 border border-slate-300 rounded hover:bg-slate-100 flex items-center gap-1.5">
+          ⠿ Nokta Grafiği
+        </button>
+      </div>
+
+      {/* Alt maddeler */}
+      <div className="mb-3 border border-slate-200 rounded p-2 bg-slate-50">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-xs font-semibold text-slate-700">Alt maddeler {items.length > 0 && `(${items.length})`}</span>
+          <button onClick={addItem} className="text-xs px-2 py-1 bg-slate-700 text-white rounded hover:bg-slate-800 flex items-center gap-1">
+            <Plus className="w-3 h-3" /> Madde ekle
+          </button>
+        </div>
+        {items.length === 0 && (
+          <div className="text-xs text-slate-400">Bir soruyu madde madde sormak için "Madde ekle"ye basın (örn. a, b, c şıkları).</div>
+        )}
+        {items.map((it, i) => (
+          <div key={it.id} className="border border-slate-200 rounded p-2 mb-2 bg-white">
+            <div className="flex items-center gap-1 mb-1">
+              <input
+                type="text"
+                value={it.label}
+                onChange={(e) => updateItem(it.id, { label: e.target.value })}
+                className="w-16 border border-slate-300 rounded px-1 py-0.5 text-sm font-bold text-center"
+                placeholder="a)"
+                title="Madde etiketi"
+              />
+              <span className="text-xs text-slate-400 flex-1">madde {i + 1}</span>
+              <button onClick={() => moveItem(i, -1)} disabled={i === 0}
+                className="p-0.5 text-slate-400 hover:text-slate-700 disabled:opacity-30" title="Yukarı">
+                <ChevronUp className="w-4 h-4" />
+              </button>
+              <button onClick={() => moveItem(i, 1)} disabled={i === items.length - 1}
+                className="p-0.5 text-slate-400 hover:text-slate-700 disabled:opacity-30" title="Aşağı">
+                <ChevronDown className="w-4 h-4" />
+              </button>
+              <button onClick={() => deleteItem(it.id)} className="p-0.5 text-red-500 hover:text-red-700" title="Sil">
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <textarea
+              value={it.text}
+              onChange={(e) => updateItem(it.id, { text: e.target.value })}
+              placeholder="Madde metni... ($..$ arası LaTeX yazılabilir)"
+              className="w-full border border-slate-300 rounded p-2 min-h-[50px] text-sm mb-1"
+            />
+            <div className="flex flex-wrap gap-3 items-center text-xs">
+              {/* Puan */}
+              <label className="flex items-center gap-1">
+                <input type="checkbox" checked={!!it.hasPoints}
+                  onChange={(e) => updateItem(it.id, { hasPoints: e.target.checked })} />
+                Puan:
+              </label>
+              {it.hasPoints && (
+                <NumericInput value={it.points === '' ? 0 : it.points} onChange={(v) => updateItem(it.id, { points: v })} integer
+                  className="w-16 border border-slate-300 rounded px-1 py-0.5" />
+              )}
+              {/* Çözüm alanı */}
+              <label className="flex items-center gap-1">
+                <input type="checkbox" checked={!!it.hasAnswer}
+                  onChange={(e) => updateItem(it.id, { hasAnswer: e.target.checked })} />
+                Çözüm alanı
+              </label>
+              {it.hasAnswer && (
+                <>
+                  <div className="relative">
+                    <NumericInput value={it.answerHeight ?? 25} onChange={(v) => updateItem(it.id, { answerHeight: v })} integer
+                      className="w-16 border border-slate-300 rounded px-1 py-0.5 pr-7" />
+                    <span className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none">mm</span>
+                  </div>
+                  <select value={it.background || 'none'} onChange={(e) => updateItem(it.id, { background: e.target.value })}
+                    className="border border-slate-300 rounded px-1 py-0.5">
+                    <option value="none">Düz</option>
+                    <option value="grid">Kareli</option>
+                    <option value="dotted">Noktalı</option>
+                    <option value="lined">Çizgili</option>
+                  </select>
+                </>
+              )}
+            </div>
+            {/* Maddeye ek araçlar */}
+            <div className="mt-2 pt-2 border-t border-slate-100 space-y-1">
+              <div className="flex flex-wrap gap-1 items-center">
+                <button onClick={() => { setShapeTarget({ itemId: it.id }); setShowLatex(true); }}
+                  className="text-[11px] px-1.5 py-0.5 border border-slate-300 rounded hover:bg-slate-100 flex items-center gap-1">
+                  <Sigma className="w-3 h-3" /> LaTeX
+                </button>
+                <button onClick={() => { setShapeTarget({ itemId: it.id }); setEditingShapeId(null); setShowNumberLine(true); }}
+                  className="text-[11px] px-1.5 py-0.5 border border-slate-300 rounded hover:bg-slate-100 flex items-center gap-1">
+                  <Minus className="w-3 h-3" /> Sayı doğrusu
+                </button>
+                <label className="text-[11px] px-1.5 py-0.5 border border-slate-300 rounded hover:bg-slate-100 flex items-center gap-1 cursor-pointer">
+                  <ImageIcon className="w-3 h-3" /> Görsel/PDF
+                  <input type="file" accept="image/*,application/pdf"
+                    onChange={(e) => handleImageUpload(e, it.id)}
+                    style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }} />
+                </label>
+              </div>
+              <div className="flex flex-wrap gap-1 items-center">
+                <span className="text-[11px] text-slate-500 mr-1">Grafik/Tablo:</span>
+                {Object.entries(CHART_TYPE_LABELS).map(([ct, lbl]) => (
+                  <button key={ct}
+                    onClick={() => setChartEditor({ chartType: ct, itemId: it.id })}
+                    className="text-[11px] px-1.5 py-0.5 border border-slate-300 rounded hover:bg-slate-100">
+                    {lbl}
+                  </button>
+                ))}
+              </div>
+              {/* Maddedeki şekiller */}
+              {(it.shapes || []).length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {it.shapes.map((sh) => (
+                    <div key={sh.id} className="relative border border-slate-200 rounded p-1 bg-white" style={{ width: 160 }}>
+                      {sh.type === 'numberLine' ? <NumberLineDisplay data={sh.data} />
+                        : sh.type === 'image' ? <img src={sh.data} alt="" className="max-h-16 mx-auto" />
+                        : <ChartDisplay data={sh.data} />}
+                      <div className="flex justify-center gap-2 mt-1">
+                        {CHART_TYPE_LABELS[sh.type] && (
+                          <button onClick={() => setChartEditor({ chartType: sh.type, itemId: it.id, editingId: sh.id })}
+                            className="text-[10px] text-blue-600 hover:underline">Düzenle</button>
+                        )}
+                        <button onClick={() => updateItem(it.id, { shapes: it.shapes.filter(x => x.id !== sh.id) })}
+                          className="text-[10px] text-red-500 hover:underline">Sil</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Eklenmiş şekiller (sayı doğruları + görseller) */}
+      {shapes.length > 0 && (
+        <div className="mb-3">
+          <div className="text-xs text-slate-600 mb-1">Eklenmiş şekiller ({shapes.length}):</div>
+          <div className="space-y-2">
+            {shapes.map((shape, i) => (
+              <div key={shape.id} className="border border-slate-200 rounded p-2 bg-slate-50">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="bg-slate-700 text-white rounded px-1.5 py-0.5 text-xs font-mono">{i + 1}</span>
+                    <span className="text-slate-600">
+                      {shape.type === 'numberLine' ? 'Sayı doğrusu'
+                        : shape.type === 'image' ? 'Görsel'
+                        : (CHART_TYPE_LABELS[shape.type] || 'Şekil')}
+                    </span>
+                    {i > 0 && (
+                      <select
+                        value={shape.layout || 'below'}
+                        onChange={(e) => updateShapeLayout(shape.id, e.target.value)}
+                        className="border border-slate-300 rounded px-1 py-0.5 text-xs bg-white"
+                      >
+                        <option value="below">⬇ Alta</option>
+                        <option value="side">➡ Yana</option>
+                      </select>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => moveShape(shape.id, -1)}
+                      disabled={i === 0}
+                      className="text-slate-500 hover:text-slate-800 disabled:opacity-30 px-1"
+                      title="Yukarı"
+                    >↑</button>
+                    <button
+                      onClick={() => moveShape(shape.id, +1)}
+                      disabled={i === shapes.length - 1}
+                      className="text-slate-500 hover:text-slate-800 disabled:opacity-30 px-1"
+                      title="Aşağı"
+                    >↓</button>
+                    {shape.type === 'numberLine' && (
+                      <button
+                        onClick={() => { setEditingShapeId(shape.id); setShowNumberLine(true); }}
+                        className="text-xs text-blue-600 hover:underline px-1"
+                      >Düzenle</button>
+                    )}
+                    {CHART_TYPE_LABELS[shape.type] && (
+                      <button
+                        onClick={() => setChartEditor({ editingId: shape.id, chartType: shape.type })}
+                        className="text-xs text-blue-600 hover:underline px-1"
+                      >Düzenle</button>
+                    )}
+                    <button
+                      onClick={() => deleteShape(shape.id)}
+                      className="text-red-500 hover:text-red-700 px-1"
+                      title="Sil"
+                    >×</button>
+                  </div>
+                </div>
+                <div className="flex justify-center bg-white rounded p-1">
+                  {shape.type === 'numberLine' ? (
+                    <NumberLineDisplay data={shape.data} />
+                  ) : shape.type === 'image' ? (
+                    <img src={shape.data} alt="" className="max-h-24 max-w-full" />
+                  ) : (
+                    <div className="w-full max-w-[200px]"><ChartDisplay data={shape.data} /></div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-2">
+            <label className="text-xs text-slate-600">Şekillerin soru metnine göre konumu:</label>
+            <select value={question.shapesPos || 'above'} onChange={(e) => update({ shapesPos: e.target.value })}
+              className="border border-slate-300 rounded px-2 py-0.5 text-xs ml-2">
+              <option value="above">Soru metninin üstünde</option>
+              <option value="below">Soru metninin altında</option>
+            </select>
+          </div>
+        </div>
+      )}
+
+      {/* Tip-specific alanlar */}
+      {question.type === 'multiple' && (
+        <div className="border-t border-slate-200 pt-3">
+          <div className="flex items-center gap-2 mb-2">
+            <label className="text-xs text-slate-600">Seçenek sayısı:</label>
+            <select value={(question.options || []).length || 4} onChange={(e) => setOptionCount(parseInt(e.target.value))}
+              className="border border-slate-300 rounded px-2 py-0.5 text-sm">
+              {[2,3,4,5,6].map(n => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </div>
+          <div className="space-y-1">
+            {(question.options || []).map((optRaw, i) => {
+              const opt = normOption(optRaw);
+              return (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="font-bold w-6">{String.fromCharCode(65 + i)})</span>
+                  <input
+                    type="text"
+                    value={opt.text}
+                    onChange={(e) => {
+                      const newOpts = (question.options || []).map((o, j) => j === i ? { ...normOption(o), text: e.target.value } : o);
+                      update({ options: newOpts });
+                    }}
+                    className="flex-1 border border-slate-300 rounded px-2 py-1 text-sm"
+                    placeholder={`Seçenek ${String.fromCharCode(65 + i)}`}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {question.type === 'tf' && (
+        <div className="border-t border-slate-200 pt-3 text-sm text-slate-600">
+          Doğru/Yanlış seçenekleri yazılı kağıdında otomatik gösterilecek (D / Y).
+        </div>
+      )}
+
+      {question.type === 'fill' && (
+        <div className="border-t border-slate-200 pt-3 text-sm text-slate-600">
+          Boşluk doldurma sorusu. Soru metninde boşluk göstermek için <code className="bg-slate-100 px-1">_____</code> kullanın.
+        </div>
+      )}
+
+      {showLatex && <LatexEditor onInsert={insertLatex} onClose={() => { setShowLatex(false); setShapeTarget(null); }} />}
+      {showNumberLine && (
+        <NumberLineEditor
+          initial={editingShapeId ? shapes.find(s => s.id === editingShapeId)?.data : null}
+          onSave={(data) => {
+            if (editingShapeId) {
+              // Mevcut sayı doğrusunu güncelle
+              updateShapeData(editingShapeId, data);
+            } else if (shapeTarget?.itemId) {
+              // Maddeye ekle
+              addShapeToItem(shapeTarget.itemId, { type: 'numberLine', data });
+            } else {
+              // Yeni sayı doğrusu ekle (yerleşim sorulacak)
+              requestAddShape({ type: 'numberLine', data });
+            }
+          }}
+          onClose={() => { setShowNumberLine(false); setEditingShapeId(null); setShapeTarget(null); }}
+        />
+      )}
+      {cropSrc && (
+        <ImageCropper
+          src={cropSrc}
+          onCrop={(dataUrl) => {
+            if (shapeTarget?.itemId) {
+              addShapeToItem(shapeTarget.itemId, { type: 'image', data: dataUrl });
+            } else {
+              requestAddShape({ type: 'image', data: dataUrl });
+            }
+          }}
+          onClose={() => { setCropSrc(null); setShapeTarget(null); }}
+        />
+      )}
+      {pdfFile && (
+        <PdfPagePicker
+          file={pdfFile}
+          onPageSelected={(dataUrl) => setCropSrc(dataUrl)}
+          onClose={() => setPdfFile(null)}
+        />
+      )}
+      {pendingShape && (
+        <ShapeLayoutPicker
+          onPick={confirmAddShape}
+          onCancel={() => setPendingShape(null)}
+        />
+      )}
+      {chartEditor && (
+        <ChartEditor
+          chartType={chartEditor.chartType}
+          initial={
+            chartEditor.itemId
+              ? ((items.find(it => it.id === chartEditor.itemId)?.shapes || []).find(s => s.id === chartEditor.editingId)?.data ?? null)
+              : (chartEditor.editingId ? shapes.find(s => s.id === chartEditor.editingId)?.data : null)
+          }
+          onSave={(data) => {
+            if (chartEditor.itemId) {
+              // Maddeye ekle veya maddedeki şekli güncelle
+              const it = items.find(x => x.id === chartEditor.itemId);
+              const itShapes = it?.shapes || [];
+              if (chartEditor.editingId) {
+                updateItem(chartEditor.itemId, { shapes: itShapes.map(s => s.id === chartEditor.editingId ? { ...s, data } : s) });
+              } else {
+                updateItem(chartEditor.itemId, { shapes: [...itShapes, { id: uniqueId(), type: data.chartType, data, layout: 'below' }] });
+              }
+            } else if (chartEditor.editingId) {
+              updateShapeData(chartEditor.editingId, data);
+            } else {
+              requestAddShape({ type: data.chartType, data });
+            }
+          }}
+          onClose={() => setChartEditor(null)}
+        />
+      )}
+    </div>
+  );
+};
+
+// QuestionEditor memo ile sarılı — sadece prop'u değişen sorular re-render olur
+const QuestionEditor = React.memo(QuestionEditorImpl);
+
+// Her soru için callback'leri stabil tutan wrapper.
+// Parent'tan questionId + global updateQuestion/deleteQuestion/moveQuestion + index alır,
+// içinde useCallback ile stabil callback'ler oluşturur. Böylece question değişmediyse
+// QuestionEditor re-render olmaz.
+const QuestionEditorRowImpl = ({ question, index, totalQuestions, updateQuestion, deleteQuestion, moveQuestion, makeDragHandlers, isDragging, isDragOver }) => {
+  const qId = question.id;
+  const onChange = useCallback((nq) => updateQuestion(qId, nq), [qId, updateQuestion]);
+  const onDelete = useCallback(() => deleteQuestion(qId), [qId, deleteQuestion]);
+  const onMoveUp = useCallback(() => moveQuestion(index, index - 1), [index, moveQuestion]);
+  const onMoveDown = useCallback(() => moveQuestion(index, index + 1), [index, moveQuestion]);
+  const dragHandlers = useMemo(() => makeDragHandlers(qId), [qId, makeDragHandlers]);
+  return (
+    <QuestionEditor
+      question={question}
+      index={index}
+      totalQuestions={totalQuestions}
+      onChange={onChange}
+      onDelete={onDelete}
+      onMoveUp={onMoveUp}
+      onMoveDown={onMoveDown}
+      canMoveUp={index > 0}
+      canMoveDown={index < totalQuestions - 1}
+      dragHandlers={dragHandlers}
+      isDragging={isDragging}
+      isDragOver={isDragOver}
+    />
+  );
+};
+
+const QuestionEditorRow = React.memo(QuestionEditorRowImpl);
+
+// ============== YAZILI KAĞIDI ÇIKTI BILEŞENI ==============
+
+const QuestionDisplayImpl = ({ question, index, halfWidth = false }) => {
+  // KaTeX yüklendiğinde re-render için (içerikte $...$ varsa otomatik düzgün gösterilsin)
+  useKatex();
+
+  const bgStyle = (() => {
+    switch (question.background) {
+      case 'grid':
+        return { backgroundImage: 'linear-gradient(#cbd5e1 1px, transparent 1px), linear-gradient(90deg, #cbd5e1 1px, transparent 1px)', backgroundSize: '5mm 5mm' };
+      case 'dotted':
+        return { backgroundImage: 'radial-gradient(#94a3b8 0.5px, transparent 0.5px)', backgroundSize: '5mm 5mm' };
+      case 'lined':
+        return { backgroundImage: 'linear-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '100% 7mm' };
+      default:
+        return {};
+    }
+  })();
+
+  // Şekilleri al (geriye dönük uyum: eski numberLine ve images da dahil)
+  const shapes = (() => {
+    if (question.shapes && question.shapes.length > 0) return question.shapes;
+    const out = [];
+    if (question.numberLine) {
+      out.push({ id: 'legacy-nl', type: 'numberLine', data: question.numberLine, layout: 'below' });
+    }
+    if (question.images && question.images.length > 0) {
+      question.images.forEach((img, i) => {
+        out.push({ id: `legacy-img-${i}`, type: 'image', data: img, layout: 'below' });
+      });
+    }
+    return out;
+  })();
+
+  // Şekilleri satırlara grupla: 'below' olan yeni satır başlatır, 'side' aynı satırda devam eder
+  const shapeRows = (() => {
+    const rows = [];
+    shapes.forEach((shape, i) => {
+      if (i === 0 || shape.layout !== 'side') {
+        rows.push([shape]);
+      } else {
+        rows[rows.length - 1].push(shape);
+      }
+    });
+    return rows;
+  })();
+
+  // Tek bir şekli render et — kapsayıcı genişliğine sığar
+  const renderShape = (shape) => {
+    if (shape.type === 'numberLine') {
+      return <NumberLineDisplay data={shape.data} />;
+    }
+    if (shape.type === 'image') {
+      return (
+        <img
+          src={shape.data}
+          alt=""
+          style={{ maxWidth: '100%', maxHeight: '60mm', height: 'auto', display: 'block', margin: '0 auto' }}
+        />
+      );
+    }
+    // Tablo/grafik türleri
+    if (CHART_TYPE_LABELS[shape.type]) {
+      return <ChartDisplay data={shape.data} />;
+    }
+    return null;
+  };
+
+  // Şekiller bloğu (üst/alt yerleşim için tekrar kullanılacak)
+  const renderShapesBlock = () => {
+    if (shapes.length === 0) return null;
+    return (
+      <div className="my-2">
+        {shapeRows.map((row, ri) => (
+          <div
+            key={ri}
+            className={row.length > 1 ? 'grid gap-3 mb-2' : 'mb-2'}
+            style={row.length > 1 ? { gridTemplateColumns: `repeat(${row.length}, minmax(0, 1fr))` } : {}}
+          >
+            {row.map(shape => (
+              <div key={shape.id} className="flex items-center justify-center min-w-0">
+                {renderShape(shape)}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Şekillerin pozisyonu (varsayılan: üstte). Eski numberLinePos ile uyumlu olalım.
+  const shapesPos = question.shapesPos || question.numberLinePos || 'above';
+
+  return (
+    <div className="question-block" data-question-id={question.id} style={{ marginBottom: `${question.gapMm ?? 5}mm` }}>
+      {question.showLearning && question.learning && (
+        <div className="text-xs italic text-slate-600 mb-1">Kazanım: {question.learning}</div>
+      )}
+      <div className="flex items-start gap-2 mb-1">
+        <span className="font-bold whitespace-nowrap" style={styleToCSS(question.textStyle)}>
+          {index + 1}){question.showPoints !== false && <span className="text-sm"> ({question.points} puan)</span>}
+        </span>
+      </div>
+
+      {shapesPos === 'above' && renderShapesBlock()}
+
+      <div style={styleToCSS(question.textStyle)} className="question-text mb-2"
+           dangerouslySetInnerHTML={{ __html: renderQuestionText(question.text) }} />
+
+      {shapesPos === 'below' && renderShapesBlock()}
+
+      {/* Alt maddeler */}
+      {(question.items || []).length > 0 && (
+        <div className="mt-2 space-y-2">
+          {question.items.map((it) => {
+            const itemBg = (() => {
+              switch (it.background) {
+                case 'grid':
+                  return { backgroundImage: 'linear-gradient(#cbd5e1 1px, transparent 1px), linear-gradient(90deg, #cbd5e1 1px, transparent 1px)', backgroundSize: '5mm 5mm' };
+                case 'dotted':
+                  return { backgroundImage: 'radial-gradient(#94a3b8 0.5px, transparent 0.5px)', backgroundSize: '5mm 5mm' };
+                case 'lined':
+                  return { backgroundImage: 'linear-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '100% 7mm' };
+                default:
+                  return {};
+              }
+            })();
+            return (
+              <div key={it.id}>
+                <div style={styleToCSS(question.textStyle)} className="flex items-start gap-1">
+                  <span className="font-bold whitespace-nowrap">{it.label}</span>
+                  <span className="flex-1">
+                    <span dangerouslySetInnerHTML={{ __html: renderQuestionText(it.text) }} />
+                    {it.hasPoints && it.points !== '' && (
+                      <span className="text-sm"> ({it.points} puan)</span>
+                    )}
+                  </span>
+                </div>
+                {/* Maddedeki grafikler */}
+                {(it.shapes || []).length > 0 && (
+                  <div className="my-1 flex flex-wrap gap-3 justify-center">
+                    {it.shapes.map((sh) => (
+                      <div key={sh.id} style={{ maxWidth: 280, flex: '1 1 200px' }}>
+                        {sh.type === 'numberLine' ? <NumberLineDisplay data={sh.data} />
+                          : sh.type === 'image' ? <img src={sh.data} alt="" style={{ maxWidth: '100%', maxHeight: '60mm' }} />
+                          : <ChartDisplay data={sh.data} />}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {it.hasAnswer && (
+                  <div
+                    className="mt-1 border border-slate-400"
+                    style={{ height: `${it.answerHeight || 25}mm`, ...itemBg }}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {question.type === 'multiple' && (
+        <div className={`grid ${halfWidth ? 'grid-cols-1' : 'grid-cols-2'} gap-x-4 gap-y-1 mt-2`}>
+          {(question.options || []).map((optRaw, i) => {
+            const opt = normOption(optRaw);
+            return (
+              <div key={i} style={styleToCSS(question.textStyle)}>
+                <span className="font-bold">{String.fromCharCode(65 + i)})</span> <span dangerouslySetInnerHTML={{ __html: renderQuestionText(opt.text) }} />
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {question.type === 'tf' && (
+        <div className="flex gap-6 mt-2" style={styleToCSS(question.textStyle)}>
+          <div>(   ) Doğru</div>
+          <div>(   ) Yanlış</div>
+        </div>
+      )}
+
+      {question.type === 'open' && (question.items || []).length === 0 && (
+        <div
+          className="mt-1 border border-slate-400"
+          style={{
+            height: `${question.answerHeight || 40}mm`,
+            ...bgStyle
+          }}
+        />
+      )}
+
+      {(question.type === 'multiple' || question.type === 'tf' || question.type === 'fill') && question.background !== 'none' && (
+        <div
+          className="mt-2 border border-slate-400"
+          style={{
+            height: `${question.answerHeight || 20}mm`,
+            ...bgStyle
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+const QuestionDisplay = React.memo(QuestionDisplayImpl);
+
+// ============== ANA UYGULAMA ==============
+
+function YaziliApp() {
+  const [meta, setMeta] = useState({
+    schoolName: '',
+    academicYear: '2025-2026',
+    subject: '',
+    grade: '',
+    term: 'II',
+    examNumber: 'I',
+    endNote: ''
+  });
+
+  const [headerStyle, setHeaderStyle] = useState(defaultStyle(14));
+  const [endNoteStyle, setEndNoteStyle] = useState(defaultStyle(11));
+
+  const [questions, setQuestions] = useState([]);
+  const [view, setView] = useState('edit'); // edit | preview
+  const [dragState, setDragState] = useState({ draggedId: null, overId: null });
+  const [showSavePanel, setShowSavePanel] = useState(false); // Yazılılarım paneli
+  const [pdfBusy, setPdfBusy] = useState(false); // PDF üretiliyor mu
+  const [saveName, setSaveName] = useState(''); // Kaydetme için isim
+  const [savedList, setSavedList] = useState([]); // localStorage'daki yazılılar
+  const printRef = useRef(null);
+
+  const STORAGE_KEY = 'mb-yazili-kayitlar';
+
+  // localStorage erişimi güvenli (artifact'te çalışmayabilir)
+  const safeStorage = {
+    get: () => {
+      try {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch (e) { return null; }
+    },
+    set: (obj) => {
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+        return true;
+      } catch (e) { return false; }
+    }
+  };
+
+  // Kayıtlı yazılı listesini yenile
+  const refreshSavedList = React.useCallback(() => {
+    const all = safeStorage.get();
+    if (all === null) { setSavedList(null); return; } // null = localStorage yok
+    const list = Object.entries(all).map(([name, data]) => ({
+      name,
+      savedAt: data._savedAt || 0,
+      questionCount: (data.questions || []).length
+    })).sort((a, b) => b.savedAt - a.savedAt);
+    setSavedList(list);
+  }, []);
+
+  // Panel açılınca listeyi yükle
+  useEffect(() => {
+    if (showSavePanel) refreshSavedList();
+  }, [showSavePanel, refreshSavedList]);
+
+  // Mevcut durumu bir nesne olarak topla
+  const collectState = () => ({
+    meta, headerStyle, endNoteStyle, questions,
+    _savedAt: Date.now(),
+    _version: 1
+  });
+
+  // Bir durumu uygula (yükleme)
+  const applyState = (data) => {
+    if (!data) return;
+    if (data.meta) setMeta(data.meta);
+    if (data.headerStyle) setHeaderStyle(data.headerStyle);
+    if (data.endNoteStyle) setEndNoteStyle(data.endNoteStyle);
+    if (Array.isArray(data.questions)) setQuestions(data.questions);
+    setView('edit');
+  };
+
+  // localStorage'a kaydet
+  const saveToStorage = (name) => {
+    const trimmed = (name || '').trim();
+    if (!trimmed) { alert('Lütfen yazılıya bir isim verin.'); return; }
+    const all = safeStorage.get();
+    if (all === null) {
+      alert('Bu ortamda tarayıcı kaydı kullanılamıyor. Bunun yerine "JSON indir" ile dosyaya kaydedebilirsiniz.');
+      return;
+    }
+    if (all[trimmed] && !window.confirm(`"${trimmed}" zaten var. Üzerine yazılsın mı?`)) return;
+    all[trimmed] = collectState();
+    if (safeStorage.set(all)) {
+      setSaveName('');
+      refreshSavedList();
+      alert(`"${trimmed}" kaydedildi.`);
+    } else {
+      alert('Kaydedilemedi (tarayıcı hafızası dolu olabilir).');
+    }
+  };
+
+  // localStorage'dan yükle
+  const loadFromStorage = (name) => {
+    const all = safeStorage.get();
+    if (!all || !all[name]) return;
+    if (questions.length > 0 && !window.confirm('Mevcut yazılının üzerine yüklensin mi? Kaydedilmemiş değişiklikler kaybolur.')) return;
+    applyState(all[name]);
+    setShowSavePanel(false);
+  };
+
+  // localStorage'dan sil
+  const deleteFromStorage = (name) => {
+    if (!window.confirm(`"${name}" silinsin mi?`)) return;
+    const all = safeStorage.get();
+    if (!all) return;
+    delete all[name];
+    safeStorage.set(all);
+    refreshSavedList();
+  };
+
+  // JSON dosyası olarak indir
+  const exportJson = () => {
+    const data = collectState();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const fname = (meta.subject || 'yazili').replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g, '').trim() || 'yazili';
+    a.href = url;
+    a.download = `${fname}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // JSON dosyasından yükle
+  const importJson = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    e.target.value = '';
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (questions.length > 0 && !window.confirm('Mevcut yazılının üzerine yüklensin mi? Kaydedilmemiş değişiklikler kaybolur.')) return;
+        applyState(data);
+        setShowSavePanel(false);
+        alert('Yazılı yüklendi.');
+      } catch (err) {
+        alert('Dosya okunamadı. Geçerli bir MB-Yazılı yedek dosyası değil.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const addQuestion = React.useCallback(() => {
+    setQuestions(prev => [...prev, {
+      id: uniqueId(),
+      type: 'open',
+      points: 10,
+      text: '',
+      textStyle: defaultStyle(12),
+      background: 'none',
+      answerHeight: 40,
+      shapes: [], // [{ id, type: 'numberLine'|'image', data, layout: 'below'|'side' }]
+      items: [], // alt maddeler: [{ id, label, text, points, hasPoints, hasAnswer, answerHeight, background }]
+      options: ['', '', '', ''],
+      nextLayout: 'below',
+      gapMm: 5,
+      showLearning: false,
+      learning: ''
+    }]);
+  }, []);
+
+  const updateQuestion = React.useCallback((id, q) => {
+    setQuestions(prev => prev.map(x => x.id === id ? q : x));
+  }, []);
+
+  const deleteQuestion = React.useCallback((id) => {
+    setQuestions(prev => prev.filter(x => x.id !== id));
+  }, []);
+
+  const moveQuestion = React.useCallback((fromIdx, toIdx) => {
+    setQuestions(prev => {
+      if (fromIdx === toIdx || fromIdx < 0 || toIdx < 0 || fromIdx >= prev.length || toIdx >= prev.length) return prev;
+      const newQs = [...prev];
+      const [moved] = newQs.splice(fromIdx, 1);
+      newQs.splice(toIdx, 0, moved);
+      return newQs;
+    });
+  }, []);
+
+  // Touch sürükleme için ek state (mobil)
+  const touchDragRef = useRef({ active: false, draggedId: null, startY: 0, lastY: 0 });
+  // Auto-scroll animasyon ref'i
+  const autoScrollRafRef = useRef(null);
+
+  // Auto-scroll loop: parmak ekran kenarına yakınsa otomatik kaydır
+  // Ayrıca her frame'de hangi sorunun üzerinde olduğumuzu güncelle (scroll sırasında bile)
+  const startAutoScroll = useCallback(() => {
+    const tick = () => {
+      if (!touchDragRef.current.active) {
+        autoScrollRafRef.current = null;
+        return;
+      }
+      const y = touchDragRef.current.lastY;
+      const x = touchDragRef.current.lastX || window.innerWidth / 2;
+      const h = window.innerHeight;
+      // Üst veya alt %20'lik bölgede mi?
+      const edge = h * 0.20;
+      let scrollBy = 0;
+      if (y < edge) {
+        const ratio = Math.min(1, (edge - y) / edge);
+        scrollBy = -Math.max(6, Math.floor(ratio * 22));
+      } else if (y > h - edge) {
+        const ratio = Math.min(1, (y - (h - edge)) / edge);
+        scrollBy = Math.max(6, Math.floor(ratio * 22));
+      }
+      if (scrollBy !== 0) {
+        try { window.scrollBy(0, scrollBy); } catch(e) {}
+        try {
+          if (document.scrollingElement) {
+            document.scrollingElement.scrollTop += scrollBy;
+          }
+        } catch(e) {}
+        try { document.documentElement.scrollTop += scrollBy; } catch(e) {}
+        try { document.body.scrollTop += scrollBy; } catch(e) {}
+      }
+
+      // Her tick'te hangi sorunun üzerindeyiz hesapla (scroll sırasında bile güncel kalsın)
+      const allBlocks = document.querySelectorAll('[data-question-id]');
+      let overId = null;
+      for (const block of allBlocks) {
+        const rect = block.getBoundingClientRect();
+        if (y >= rect.top && y <= rect.bottom) {
+          const id = parseInt(block.getAttribute('data-question-id'));
+          if (id && id !== touchDragRef.current.draggedId) {
+            overId = id;
+          }
+          break;
+        }
+      }
+      if (overId !== dragStateRef.current.overId) {
+        setDragState(s => ({ ...s, overId }));
+      }
+
+      autoScrollRafRef.current = requestAnimationFrame(tick);
+    };
+    if (!autoScrollRafRef.current) {
+      autoScrollRafRef.current = requestAnimationFrame(tick);
+    }
+  }, []);
+
+  const stopAutoScroll = useCallback(() => {
+    if (autoScrollRafRef.current) {
+      cancelAnimationFrame(autoScrollRafRef.current);
+      autoScrollRafRef.current = null;
+    }
+  }, []);
+
+  // Component unmount olursa RAF'i temizle
+  useEffect(() => {
+    return () => {
+      if (autoScrollRafRef.current) cancelAnimationFrame(autoScrollRafRef.current);
+    };
+  }, []);
+
+  // questions'a stable referans için (closure'larda en güncel değeri okumak için)
+  const questionsRef = useRef(questions);
+  useEffect(() => { questionsRef.current = questions; }, [questions]);
+  // dragState'i ref'te de tut ki callback'ler en güncelini okusun
+  const dragStateRef = useRef(dragState);
+  useEffect(() => { dragStateRef.current = dragState; }, [dragState]);
+
+  // Drag handlers oluşturucu — useCallback ile stabil, her sorunun handler'ı aynı kalır
+  const makeDragHandlers = useCallback((questionId) => ({
+    dragHandle: {
+      draggable: true,
+      onDragStart: (e) => {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(questionId));
+        setDragState({ draggedId: questionId, overId: null });
+      },
+      onDragEnd: () => {
+        setDragState({ draggedId: null, overId: null });
+      },
+      onTouchStart: (e) => {
+        const y = e.touches[0].clientY;
+        const x = e.touches[0].clientX;
+        touchDragRef.current = { active: true, draggedId: questionId, startY: y, lastY: y, lastX: x };
+        setDragState({ draggedId: questionId, overId: null });
+        startAutoScroll();
+      },
+      onTouchMove: (e) => {
+        if (!touchDragRef.current.active) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        // Son pozisyonu kaydet (auto-scroll için)
+        touchDragRef.current.lastY = touch.clientY;
+        touchDragRef.current.lastX = touch.clientX;
+
+        // Tüm soru kutularını bul ve Y aralıklarına göre eşle (elementFromPoint'tan daha sağlam)
+        const allBlocks = document.querySelectorAll('[data-question-id]');
+        let overId = null;
+        for (const block of allBlocks) {
+          const rect = block.getBoundingClientRect();
+          // Parmak bu kutunun dikey aralığında mı?
+          if (touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+            const id = parseInt(block.getAttribute('data-question-id'));
+            if (id && id !== touchDragRef.current.draggedId) {
+              overId = id;
+            }
+            break;
+          }
+        }
+        if (overId !== dragStateRef.current.overId) {
+          setDragState(s => ({ ...s, overId }));
+        }
+      },
+      onTouchEnd: () => {
+        const { draggedId } = touchDragRef.current;
+        const overId = dragStateRef.current.overId;
+        if (draggedId && overId && draggedId !== overId) {
+          const qs = questionsRef.current;
+          const fromIdx = qs.findIndex(q => q.id === draggedId);
+          const toIdx = qs.findIndex(q => q.id === overId);
+          if (fromIdx !== -1 && toIdx !== -1) moveQuestion(fromIdx, toIdx);
+        }
+        touchDragRef.current = { active: false, draggedId: null, startY: 0, lastY: 0, lastX: 0 };
+        stopAutoScroll();
+        setDragState({ draggedId: null, overId: null });
+      },
+      onTouchCancel: () => {
+        touchDragRef.current = { active: false, draggedId: null, startY: 0, lastY: 0, lastX: 0 };
+        stopAutoScroll();
+        setDragState({ draggedId: null, overId: null });
+      }
+    },
+    dropZone: {
+      'data-question-id': questionId,
+      onDragOver: (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const ds = dragStateRef.current;
+        if (ds.draggedId && ds.draggedId !== questionId && ds.overId !== questionId) {
+          setDragState(s => ({ ...s, overId: questionId }));
+        }
+      },
+      onDragLeave: () => {
+        if (dragStateRef.current.overId === questionId) {
+          setDragState(s => ({ ...s, overId: null }));
+        }
+      },
+      onDrop: (e) => {
+        e.preventDefault();
+        const draggedId = parseInt(e.dataTransfer.getData('text/plain'));
+        if (!draggedId || draggedId === questionId) {
+          setDragState({ draggedId: null, overId: null });
+          return;
+        }
+        const qs = questionsRef.current;
+        const fromIdx = qs.findIndex(q => q.id === draggedId);
+        const toIdx = qs.findIndex(q => q.id === questionId);
+        if (fromIdx !== -1 && toIdx !== -1) {
+          moveQuestion(fromIdx, toIdx);
+        }
+        setDragState({ draggedId: null, overId: null });
+      }
+    }
+  }), [moveQuestion, startAutoScroll, stopAutoScroll]);
+
+  // Soruları yan yana / alt alta gruplara böl
+  // items yanında indices da tutuyoruz, böylece render'da questions.indexOf çağırmaya gerek kalmaz
+  const groupedQuestions = useMemo(() => {
+    const groups = [];
+    let i = 0;
+    while (i < questions.length) {
+      if (questions[i].nextLayout === 'side' && i + 1 < questions.length) {
+        groups.push({ type: 'side', items: [questions[i], questions[i + 1]], indices: [i, i + 1] });
+        i += 2;
+      } else {
+        groups.push({ type: 'single', items: [questions[i]], indices: [i] });
+        i += 1;
+      }
+    }
+    return groups;
+  }, [questions]);
+
+  const handlePrint = () => {
+    if (view !== 'preview') {
+      setView('preview');
+      // Render ve KaTeX'in oturması için yeterli süre
+      setTimeout(() => window.print(), 500);
+      return;
+    }
+    window.print();
+  };
+
+  const handleDownloadPDF = () => {
+    // NOT: html2pdf (ekran görüntüsü -> resim) yöntemi telefonda kenar kesme,
+    // boş sayfa ve sayfaya müdahale edip "Düzenle"ye geçişi bozma sorunları
+    // çıkarıyordu. Bunun yerine tarayıcının KENDİ yazdırma motorunu kullanıyoruz:
+    // gerçek A4 sayfasına, gerçek metinle basar; kenar kesmez, boş sayfa yapmaz
+    // ve sayfa DOM'una hiç dokunmadığı için uygulamayı bozmaz.
+    // Kullanıcı açılan ekrandan "PDF olarak kaydet"i seçer.
+    if (view !== 'preview') {
+      setView('preview');
+      setTimeout(() => window.print(), 600);
+      return;
+    }
+    window.print();
+  };
+
+  const handleDownloadWord = async (retry = 0) => {
+    // Önizleme görünümünde değilse otomatik olarak geç ve bekle ki DOM hazırlansın
+    if (view !== 'preview') {
+      setView('preview');
+      setTimeout(() => handleDownloadWord(0), 500);
+      return;
+    }
+
+    // printRef henüz bağlanmadıysa birkaç kez tekrar dene
+    if (!printRef.current) {
+      if (retry < 10) {
+        setTimeout(() => handleDownloadWord(retry + 1), 200);
+        return;
+      }
+      alert('Önizleme henüz hazır değil. Lütfen önce "Önizle" sekmesine geçip birkaç saniye sonra tekrar deneyin.');
+      return;
+    }
+
+    // Yazdırılacak sayfanın HTML'ini al
+    const pageHtml = printRef.current.innerHTML;
+
+    // KaTeX stillerini Word belgesine gömmek için al (yüklüyse)
+    let katexCss = '';
+    try {
+      const katexLink = document.querySelector('link[data-katex]');
+      if (katexLink) {
+        const res = await fetch(katexLink.href);
+        if (res.ok) katexCss = await res.text();
+      }
+    } catch (e) {
+      // CORS veya başka bir sebepten yüklenmeyebilir; matematik biraz farklı görünebilir ama belge yine çalışır
+      console.warn('KaTeX CSS Word belgesi için yüklenemedi:', e);
+    }
+
+    // Word'ün anlayacağı formatta tam bir HTML belgesi oluştur.
+    const docTitle = `${meta.academicYear} Eğitim ve Öğretim Yılı ${meta.schoolName || '[Okul Adı]'} ${meta.grade || '[Sınıf Seviyesi]'} ${meta.term}. Dönem ${meta.examNumber}. ${meta.subject || '[Ders]'} Yazılısı`;
+    const wordDoc = `<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>${docTitle}</title>
+<!--[if gte mso 9]>
+<xml>
+  <w:WordDocument>
+    <w:View>Print</w:View>
+    <w:Zoom>100</w:Zoom>
+    <w:DoNotOptimizeForBrowser/>
+  </w:WordDocument>
+</xml>
+<![endif]-->
+<style>
+  @page {
+    size: A4;
+    margin: 15mm 15mm 15mm 15mm;
+    mso-page-orientation: portrait;
+  }
+  body {
+    font-family: 'Times New Roman', serif;
+    font-size: 12pt;
+    margin: 0;
+    padding: 0;
+  }
+  div.print-page {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+    background: white;
+  }
+  table { border-collapse: collapse; }
+  .question-block { page-break-inside: avoid; }
+  svg { display: inline-block; }
+  ${katexCss}
+</style>
+</head>
+<body>
+${pageHtml}
+</body>
+</html>`;
+
+    // Dosya adı
+    const safeName = (meta.subject || 'Yazili')
+      .replace(/[^\w\sğüşıöçĞÜŞİÖÇ-]/g, '')
+      .trim()
+      .replace(/\s+/g, '_');
+    const fileName = `MB-Yazili_${safeName || 'Yazili'}_${meta.term || 'I'}D_${meta.examNumber || 'I'}Yazili.doc`;
+
+    // İndirme tetikle (Blob yöntemi)
+    let downloaded = false;
+    try {
+      const blob = new Blob(['\ufeff', wordDoc], { type: 'application/msword;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      downloaded = true;
+    } catch (e) {
+      console.warn('Blob indirme başarısız, yedek yönteme geçiliyor:', e);
+    }
+
+    // WebView/APK'da Blob çalışmazsa: data URI ile yeni sekmede aç
+    if (!downloaded) {
+      try {
+        const dataUri = 'data:application/msword;charset=utf-8,' + encodeURIComponent('\ufeff' + wordDoc);
+        const w = window.open(dataUri, '_blank');
+        if (!w) {
+          // Pop-up da engellendiyse aynı sekmede aç
+          window.location.href = dataUri;
+        }
+      } catch (e) {
+        alert('Word belgesi oluşturulamadı. Lütfen Chrome tarayıcısında açmayı deneyin.');
+      }
+    }
+  };
+
+  const titleText = `${meta.academicYear} Eğitim ve Öğretim Yılı ${meta.schoolName || '[Okul Adı]'} ${meta.grade || '[Sınıf Seviyesi]'} ${meta.term}. Dönem ${meta.examNumber}. ${meta.subject || '[Ders]'} Yazılısı`;
+
+  return (
+    <div className="min-h-screen bg-slate-100">
+      <style>{`
+        @media print {
+          .no-print { display: none !important; }
+          .print-page {
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: auto !important;
+            max-width: 100% !important;
+            min-height: auto !important;
+            box-sizing: border-box !important;
+          }
+          body { background: white !important; margin: 0 !important; }
+          html { background: white !important; }
+          .question-block { page-break-inside: avoid; }
+        }
+        @page {
+          size: A4;
+          margin: 15mm;
+        }
+        .print-page {
+          width: 210mm;
+          min-height: 297mm;
+          padding: 15mm;
+          background: white;
+          margin: 1rem auto;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+          box-sizing: border-box;
+        }
+        .latex-inline {
+          display: inline-flex;
+          align-items: center;
+          vertical-align: middle;
+        }
+      `}</style>
+
+      {/* Üst bar */}
+      <div className="no-print bg-white border-b border-slate-200 sticky top-0 z-40 px-4 py-3">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-lg font-bold text-slate-800 text-center mb-2">📝 MB-Yazılı</h1>
+          <div className="flex gap-2 flex-wrap justify-center">
+            <button
+              onClick={() => setView('edit')}
+              className={`px-3 py-1.5 rounded text-sm ${view === 'edit' ? 'bg-slate-800 text-white' : 'bg-slate-200 text-slate-700'}`}
+            >Düzenle</button>
+            <button
+              onClick={() => setView('preview')}
+              className={`px-3 py-1.5 rounded text-sm ${view === 'preview' ? 'bg-slate-800 text-white' : 'bg-slate-200 text-slate-700'}`}
+            >Önizle</button>
+            <button onClick={() => handleDownloadWord(0)} className="px-3 py-1.5 rounded text-sm bg-indigo-600 text-white hover:bg-indigo-700 flex items-center gap-1">
+              <FileText className="w-4 h-4" /> Word
+            </button>
+            <button onClick={() => handleDownloadPDF(0)} disabled={pdfBusy} className="px-3 py-1.5 rounded text-sm bg-green-600 text-white hover:bg-green-700 disabled:opacity-60 flex items-center gap-1">
+              <Download className="w-4 h-4" /> {pdfBusy ? 'PDF hazırlanıyor...' : 'PDF'}
+            </button>
+            <button onClick={handlePrint} className="px-3 py-1.5 rounded text-sm bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-1">
+              <Printer className="w-4 h-4" /> Yazdır
+            </button>
+            <button onClick={() => setShowSavePanel(true)} className="px-3 py-1.5 rounded text-sm bg-amber-500 text-white hover:bg-amber-600 flex items-center gap-1">
+              <Save className="w-4 h-4" /> Yazılılarım
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Yazılılarım paneli */}
+      {showSavePanel && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-2 sm:p-4 overflow-y-auto no-print">
+          <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full p-4 sm:p-6 my-2 sm:my-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-slate-800">Yazılılarım</h3>
+              <button onClick={() => setShowSavePanel(false)} className="text-slate-500 hover:text-slate-700 text-2xl">×</button>
+            </div>
+
+            {/* Kaydet */}
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded">
+              <div className="text-sm font-semibold text-slate-700 mb-2">Bu yazılıyı kaydet</div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={saveName}
+                  onChange={(e) => setSaveName(e.target.value)}
+                  placeholder="Yazılı adı (örn: 7A Matematik 1. Yazılı)"
+                  className="flex-1 border border-slate-300 rounded px-2 py-1.5 text-sm"
+                />
+                <button onClick={() => saveToStorage(saveName)}
+                  className="px-3 py-1.5 bg-amber-500 text-white rounded hover:bg-amber-600 text-sm whitespace-nowrap flex items-center gap-1">
+                  <Save className="w-4 h-4" /> Kaydet
+                </button>
+              </div>
+            </div>
+
+            {/* Kayıtlı liste */}
+            <div className="mb-4">
+              <div className="text-sm font-semibold text-slate-700 mb-2">Kayıtlı yazılılar</div>
+              {savedList === null ? (
+                <div className="text-xs text-slate-500 bg-slate-50 p-3 rounded">
+                  Bu ortamda tarayıcı kaydı kullanılamıyor (örn. Claude önizlemesi). Gerçek sitede (Vercel) çalışır.
+                  Şimdilik aşağıdaki <b>JSON indir</b> ile dosyaya kaydedebilirsiniz.
+                </div>
+              ) : savedList.length === 0 ? (
+                <div className="text-xs text-slate-400">Henüz kayıt yok.</div>
+              ) : (
+                <div className="space-y-1 max-h-60 overflow-y-auto">
+                  {savedList.map((item) => (
+                    <div key={item.name} className="flex items-center gap-2 border border-slate-200 rounded p-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate">{item.name}</div>
+                        <div className="text-[11px] text-slate-400">
+                          {item.questionCount} soru · {item.savedAt ? new Date(item.savedAt).toLocaleString('tr-TR') : ''}
+                        </div>
+                      </div>
+                      <button onClick={() => loadFromStorage(item.name)}
+                        className="px-2 py-1 text-xs bg-slate-700 text-white rounded hover:bg-slate-800 flex items-center gap-1">
+                        <FolderOpen className="w-3 h-3" /> Aç
+                      </button>
+                      <button onClick={() => deleteFromStorage(item.name)}
+                        className="p-1 text-red-500 hover:text-red-700">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* JSON dışa/içe aktar */}
+            <div className="border-t border-slate-200 pt-3">
+              <div className="text-sm font-semibold text-slate-700 mb-2">Dosyaya yedekle / geri yükle</div>
+              <div className="text-[11px] text-slate-500 mb-2">
+                Yazılıyı bilgisayarına/telefonuna dosya olarak indir, sonra istediğin zaman geri yükle. Her ortamda çalışır, başka cihaza taşıyabilirsin.
+              </div>
+              <div className="flex gap-2">
+                <button onClick={exportJson}
+                  className="flex-1 px-3 py-1.5 border border-slate-300 rounded hover:bg-slate-100 text-sm flex items-center justify-center gap-1">
+                  <Download className="w-4 h-4" /> JSON indir
+                </button>
+                <label className="flex-1 px-3 py-1.5 border border-slate-300 rounded hover:bg-slate-100 text-sm flex items-center justify-center gap-1 cursor-pointer">
+                  <Upload className="w-4 h-4" /> JSON yükle
+                  <input type="file" accept="application/json,.json" onChange={importJson}
+                    style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }} />
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Düzenleme görünümü */}
+      {view === 'edit' && (
+        <div className="max-w-4xl mx-auto p-4">
+          {/* Yazılı bilgileri */}
+          <div className="bg-white rounded-lg shadow p-4 mb-4">
+            <h2 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><Settings className="w-4 h-4" /> Yazılı Bilgileri</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-slate-600">Okul Adı</label>
+                <input type="text" value={meta.schoolName} onChange={(e) => setMeta({ ...meta, schoolName: e.target.value })}
+                  placeholder="örn: 23 Nisan İmam Hatip Ortaokulu"
+                  className="w-full border border-slate-300 rounded px-2 py-1" />
+              </div>
+              <div>
+                <label className="text-xs text-slate-600">Eğitim Öğretim Yılı</label>
+                <input type="text" value={meta.academicYear} onChange={(e) => setMeta({ ...meta, academicYear: e.target.value })}
+                  className="w-full border border-slate-300 rounded px-2 py-1" />
+              </div>
+              <div>
+                <label className="text-xs text-slate-600">Ders Adı</label>
+                <input type="text" value={meta.subject} onChange={(e) => setMeta({ ...meta, subject: e.target.value })}
+                  placeholder="örn: Matematik"
+                  className="w-full border border-slate-300 rounded px-2 py-1" />
+              </div>
+              <div>
+                <label className="text-xs text-slate-600">Sınıf Seviyesi</label>
+                <input type="text" value={meta.grade} onChange={(e) => setMeta({ ...meta, grade: e.target.value })}
+                  placeholder="örn: 7. Sınıf"
+                  className="w-full border border-slate-300 rounded px-2 py-1" />
+              </div>
+              <div>
+                <label className="text-xs text-slate-600">Dönem</label>
+                <select value={meta.term} onChange={(e) => setMeta({ ...meta, term: e.target.value })}
+                  className="w-full border border-slate-300 rounded px-2 py-1">
+                  <option value="I">I. Dönem</option>
+                  <option value="II">II. Dönem</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-slate-600">Kaçıncı Yazılı</label>
+                <select value={meta.examNumber} onChange={(e) => setMeta({ ...meta, examNumber: e.target.value })}
+                  className="w-full border border-slate-300 rounded px-2 py-1">
+                  <option value="I">I. Yazılı</option>
+                  <option value="II">II. Yazılı</option>
+                  <option value="III">III. Yazılı</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="mt-3">
+              <label className="text-xs text-slate-600">Başlık yazı stili</label>
+              <TextStyleControls style={headerStyle} onChange={setHeaderStyle} compact />
+            </div>
+
+            <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded">
+              <div className="text-xs text-slate-500 mb-1">Başlık önizleme:</div>
+              <div className="text-center" style={styleToCSS(headerStyle)}>{titleText}</div>
+            </div>
+
+            <div className="mt-4">
+              <label className="text-xs text-slate-600">Yazılının sonuna eklenecek not (öğrencilere mesaj)</label>
+              <textarea value={meta.endNote} onChange={(e) => setMeta({ ...meta, endNote: e.target.value })}
+                placeholder="örn: Başarılar dilerim. Süre 40 dakikadır."
+                className="w-full border border-slate-300 rounded p-2 mt-1 min-h-[60px]" />
+              <div className="mt-2">
+                <label className="text-xs text-slate-600">Son not yazı stili</label>
+                <TextStyleControls style={endNoteStyle} onChange={setEndNoteStyle} compact />
+              </div>
+            </div>
+          </div>
+
+          {/* Sorular */}
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="font-bold text-slate-800">Sorular ({questions.length})</h2>
+              <div className="text-sm text-slate-600">
+                Toplam puan: <span className="font-bold">{questions.reduce((s, q) => s + (q.points || 0), 0)}</span>
+              </div>
+            </div>
+
+            {questions.length > 1 && (
+              <div className="text-xs text-slate-500 mb-2 bg-slate-50 border border-slate-200 rounded px-3 py-1.5">
+                💡 Soruları yeniden sıralamak için sol baştaki <GripVertical className="inline w-3.5 h-3.5" /> tutamacından sürükleyin veya ok butonlarını kullanın.
+              </div>
+            )}
+
+            {questions.map((q, i) => (
+              <QuestionEditorRow
+                key={q.id}
+                question={q}
+                index={i}
+                totalQuestions={questions.length}
+                updateQuestion={updateQuestion}
+                deleteQuestion={deleteQuestion}
+                moveQuestion={moveQuestion}
+                makeDragHandlers={makeDragHandlers}
+                isDragging={dragState.draggedId === q.id}
+                isDragOver={dragState.overId === q.id && dragState.draggedId !== q.id}
+              />
+            ))}
+
+            <button onClick={addQuestion} className="w-full border-2 border-dashed border-slate-300 rounded-lg py-4 text-slate-600 hover:bg-slate-50 flex items-center justify-center gap-2">
+              <Plus className="w-5 h-5" /> Yeni Soru Ekle
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Önizleme / yazdırma görünümü */}
+      {view === 'preview' && (
+        <div ref={printRef}>
+          <div className="print-page">
+            {/* Başlık */}
+            <div className="border-2 border-slate-800 p-3 mb-4">
+              <div className="text-center" style={styleToCSS(headerStyle)}>
+                {titleText}
+              </div>
+              <div className="grid grid-cols-4 gap-2 mt-3 text-sm" style={{ fontFamily: 'Times New Roman' }}>
+                <div>Ad: ..........................</div>
+                <div>Soyad: ..........................</div>
+                <div>Numara: ..........................</div>
+                <div>Sınıf: ..........................</div>
+              </div>
+              <div className="mt-2 text-right text-sm" style={{ fontFamily: 'Times New Roman' }}>
+                <span className="inline-block border border-slate-800 px-4 py-1">
+                  Puan: ........... / 100
+                </span>
+              </div>
+            </div>
+
+            {/* Sorular */}
+            {groupedQuestions.map((group, gi) => {
+              if (group.type === 'side') {
+                return (
+                  <div key={gi} className="grid grid-cols-2 gap-4">
+                    <div className="border-r border-slate-300 pr-3">
+                      <QuestionDisplay question={group.items[0]} index={group.indices[0]} halfWidth />
+                    </div>
+                    <div className="pl-3">
+                      <QuestionDisplay question={group.items[1]} index={group.indices[1]} halfWidth />
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <QuestionDisplay key={gi} question={group.items[0]} index={group.indices[0]} />
+              );
+            })}
+
+            {/* Son not */}
+            {meta.endNote && (
+              <div className="mt-6 pt-3 border-t border-slate-400" style={{ ...styleToCSS(endNoteStyle), whiteSpace: 'pre-wrap' }}>
+                {meta.endNote}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+    // ===== Uygulamayı başlat =====
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<YaziliApp />);
+  </script>
+  <script>
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+            navigator.serviceWorker
+                .register("/serviceWorker.js")
+                .then((registration) => {
+                    console.log("SW registration successful");
+                });
+        });
+    }
+  </script>
+</body>
 </html>

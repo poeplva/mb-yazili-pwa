@@ -2,7 +2,7 @@
     "name": "MB Yazılı App",
     "short_name": "mb-yazili",
     "description": "",
-    "theme_color": "#03a9f4",
+    "theme_color": "#f1f5f9",
     "background_color": "#5a0fc8",
     "display": "standalone",
     "orientation": "any",

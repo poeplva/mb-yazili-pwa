@@ -84,3 +84,22 @@ setCatchHandler(async ({ event }) => {
     return Response.error();
 });
 
+// Cache External CDNs (React, Tailwind, Babel, KaTeX, etc.)
+registerRoute(
+    ({ url }) =>
+        url.origin === "https://unpkg.com" ||
+        url.origin === "https://cdn.tailwindcss.com" ||
+        url.origin === "https://cdn.jsdelivr.net",
+    new StaleWhileRevalidate({
+        cacheName: "pwa-external-cdns",
+        plugins: [
+            new CacheableResponsePlugin({
+                statuses: [0, 200], // 0 allows caching of opaque cross-origin responses
+            }),
+            new ExpirationPlugin({
+                maxEntries: 50,
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
+            }),
+        ],
+    })
+);
