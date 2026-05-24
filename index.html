@@ -1126,8 +1126,7 @@ const ChartDisplayImpl = ({ data }) => {
           <thead>
             <tr>
               <th className="border border-black px-2 py-1">{xLabel || 'Kategori'}</th>
-              <th className="border border-black px-2 py-1">{isTally ? 'Çetele' : (yLabel || 'Sıklık')}</th>
-              {isTally && <th className="border border-black px-2 py-1">{yLabel || 'Sıklık'}</th>}
+              <th className="border border-black px-2 py-1">{yLabel || 'Sıklık'}</th>
             </tr>
           </thead>
           <tbody>
@@ -1135,9 +1134,10 @@ const ChartDisplayImpl = ({ data }) => {
               <tr key={i}>
                 <td className="border border-black px-2 py-1 text-center" dangerouslySetInnerHTML={{ __html: renderQuestionText(String(r.label ?? '')) }} />
                 <td className="border border-black px-2 py-1 text-center" style={{ minHeight: '1.5em' }}>
-                  {isTally ? (filled ? tallyMarks(parseChartNumber(r.value)) : '') : (filled ? <span dangerouslySetInnerHTML={{ __html: renderQuestionText(String(displayChartValue(r.value))) }} /> : '')}
+                  {isTally
+                    ? (filled ? tallyMarks(parseChartNumber(r.value)) : '')
+                    : (filled ? <span dangerouslySetInnerHTML={{ __html: renderQuestionText(String(displayChartValue(r.value))) }} /> : '')}
                 </td>
-                {isTally && <td className="border border-black px-2 py-1 text-center">{filled ? <span dangerouslySetInnerHTML={{ __html: renderQuestionText(String(displayChartValue(r.value))) }} /> : ''}</td>}
               </tr>
             ))}
           </tbody>
@@ -2679,10 +2679,10 @@ const QuestionDisplayImpl = ({ question, index, halfWidth = false }) => {
                     ))}
                   </div>
                 )}
-                {it.hasAnswer && (
+                {it.hasAnswer && (it.answerHeight ?? 25) > 0 && (
                   <div
                     className="mt-1 border border-slate-400"
-                    style={{ height: `${it.answerHeight || 25}mm`, ...itemBg }}
+                    style={{ height: `${it.answerHeight ?? 25}mm`, marginRight: '2mm', ...itemBg }}
                   />
                 )}
               </div>
@@ -2711,21 +2711,23 @@ const QuestionDisplayImpl = ({ question, index, halfWidth = false }) => {
         </div>
       )}
 
-      {question.type === 'open' && (question.items || []).length === 0 && (
+      {question.type === 'open' && (question.items || []).length === 0 && (question.answerHeight ?? 40) > 0 && (
         <div
           className="mt-1 border border-slate-400"
           style={{
-            height: `${question.answerHeight || 40}mm`,
+            height: `${question.answerHeight ?? 40}mm`,
+            marginRight: '2mm',
             ...bgStyle
           }}
         />
       )}
 
-      {(question.type === 'multiple' || question.type === 'tf' || question.type === 'fill') && question.background !== 'none' && (
+      {(question.type === 'multiple' || question.type === 'tf' || question.type === 'fill') && question.background !== 'none' && (question.answerHeight ?? 20) > 0 && (
         <div
           className="mt-2 border border-slate-400"
           style={{
-            height: `${question.answerHeight || 20}mm`,
+            height: `${question.answerHeight ?? 20}mm`,
+            marginRight: '2mm',
             ...bgStyle
           }}
         />
